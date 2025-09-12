@@ -3,6 +3,7 @@
 //
 
 #include "ESP.hpp"
+#include <Features/Events/ThirdPersonEvent.hpp>
 
 #include <Features/FeatureManager.hpp>
 #include <Features/Events/ActorRenderEvent.hpp>
@@ -14,11 +15,25 @@
 void ESP::onEnable()
 {
     gFeatureManager->mDispatcher->listen<RenderEvent, &ESP::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &ESP::onChengePerson>(this);
 }
 
 void ESP::onDisable()
 {
     gFeatureManager->mDispatcher->deafen<RenderEvent, &ESP::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &ESP::onChengePerson>(this);
+}
+
+void ESP::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
 }
 
 void ESP::onRenderEvent(RenderEvent& event)
@@ -42,7 +57,7 @@ void ESP::onRenderEvent(RenderEvent& event)
         auto drawList = ImGui::GetBackgroundDrawList();
         for (auto actor : botActors)
         {
-            if (actor == localPlayer && ClientInstance::get()->getOptions()->mThirdPerson->value == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
+            if (actor == localPlayer && mCurrentPerson == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
             if (actor == localPlayer && !mRenderLocal.mValue) continue;
             auto shape = actor->getAABBShapeComponent();
             if (!shape) continue;
@@ -74,7 +89,7 @@ void ESP::onRenderEvent(RenderEvent& event)
 
     for (auto actor : actors)
     {
-        if (actor == localPlayer && ClientInstance::get()->getOptions()->mThirdPerson->value == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
+        if (actor == localPlayer && mCurrentPerson == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
         if (actor == localPlayer && !mRenderLocal.mValue) continue;
         auto shape = actor->getAABBShapeComponent();
         if (!shape) continue;

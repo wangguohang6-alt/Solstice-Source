@@ -131,7 +131,7 @@ void EditionFaker::onDisable() {
 
 void EditionFaker::onConnectionRequestEvent(ConnectionRequestEvent& event) {
     spoofEdition();
-    event.mInputMode = mInputMethod.as<int>();
+//    event.mInputMode = mInputMethod.as<int>();
 }
 
 void EditionFaker::onPacketOutEvent(PacketOutEvent &event) {

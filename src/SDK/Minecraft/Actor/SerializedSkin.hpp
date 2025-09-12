@@ -129,7 +129,7 @@ class SerializedSkin
 public:
     CLASS_FIELD(int32_t, skinWidth, 0xA4);
     CLASS_FIELD(int32_t, skinHeight, 0xA8);
-    CLASS_FIELD(const uint8_t*, skinData, 0xC0); // skinImage + Blob = 0xB8 + 0x8 pointer = 0xC0
+    CLASS_FIELD(const uint8_t*, skinData, 0xC0); 
 public:
     std::string                                          mId;                             // this+0x0
     std::string                                          mPlayFabId;                      // this+0x20
@@ -174,4 +174,21 @@ public:
 
         return result;
     }
+};
+
+
+class SerializedSkinBase
+{
+private:
+    template <typename To>
+    class ThreadOwner
+    {
+    public:
+        To Object;
+        bool ThreadIdInitialized{};
+        std::thread::id ThreadId;
+        unsigned int ThreadCheckIndex{};
+    };
+public:
+    std::shared_ptr<ThreadOwner<SerializedSkin>> Impl;
 };

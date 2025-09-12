@@ -20,6 +20,13 @@ public:
         Medium,
         Low
     };
+    enum class RotationMode {
+        Normal,
+    };
+    enum class SwingMode {
+        Normal,
+        Silent
+    };
     EnumSettingT<UncoverMode> mUncoverMode = EnumSettingT<UncoverMode>("Uncover Mode", "The mode for uncover", UncoverMode::None, "None", "Path Find"
 #ifdef __PRIVATE_BUILD__
     ,"Under Ground"
@@ -47,6 +54,12 @@ public:
     BoolSetting mSwing = BoolSetting("Swing", "Swings when destroying blocks", false);
     BoolSetting mHotbarOnly = BoolSetting("Hotbar Only", "Only switch to tools in the hotbar", false);
     BoolSetting mInfiniteDurability = BoolSetting("Infinite Durability", "Infinite durability for tools (may cause issues!)", false);
+    BoolSetting mFlareonV2 = BoolSetting("FlareonV2", "Add settings to bypass flareon v2", false);
+    EnumSettingT<RotationMode> mRotationMode = EnumSettingT<RotationMode>("Rotation Mode", "The rotation mode", RotationMode::Normal, "Normal");
+    BoolSetting mHeadYaw = BoolSetting("Head Yaw", "Avoids movement check", false);
+    EnumSettingT<SwingMode> mSwingMode = EnumSettingT<SwingMode>("Swing Mode", "The swing mode", SwingMode::Normal, "Normal", "Silent");
+    BoolSetting mOnGround = BoolSetting("OnGround", "Don't break block while you're off ground", false);
+    BoolSetting mFirstRotation = BoolSetting("First Rotation", "Rotate when queue block", true);
     BoolSetting mRenderBlock = BoolSetting("Render Block", "Renders the block you are currently breaking", true);
 
     OreMiner() : ModuleBase("OreMiner", "Automatically breaks ores", ModuleCategory::Player, 0, false) {
@@ -73,6 +86,7 @@ public:
         addSetting(&mSwing);
         addSetting(&mHotbarOnly);
         addSetting(&mInfiniteDurability);
+        addSettings(&mFlareonV2, &mRotationMode, &mHeadYaw, &mSwingMode, &mOnGround, &mFirstRotation);
         addSetting(&mRenderBlock);
 
         VISIBILITY_CONDITION(mOnGroundOnly, mCalcMode.mValue == CalcMode::Dynamic);
@@ -84,6 +98,12 @@ public:
         VISIBILITY_CONDITION(mCoalPriority, mCoal.mValue);
         VISIBILITY_CONDITION(mRedstonePriority, mRedstone.mValue);
         VISIBILITY_CONDITION(mLapisPriority, mLapis.mValue);
+
+        VISIBILITY_CONDITION(mRotationMode, mFlareonV2.mValue);
+        VISIBILITY_CONDITION(mHeadYaw, mFlareonV2.mValue);
+        VISIBILITY_CONDITION(mSwingMode, mFlareonV2.mValue);
+        VISIBILITY_CONDITION(mOnGround, mFlareonV2.mValue);
+        VISIBILITY_CONDITION(mFirstRotation, mFlareonV2.mValue);
         
         mNames = {
             {Lowercase, "oreminer"},

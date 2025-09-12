@@ -18,7 +18,7 @@ public:
         Bounce
     };
     EnumSettingT<ClickGuiStyle> mStyle = EnumSettingT<ClickGuiStyle>("Style", "The style of the ClickGui.", ClickGuiStyle::Modern, "Modern");
-    EnumSettingT<ClickGuiAnimation> mAnimation = EnumSettingT<ClickGuiAnimation>("Animation", "The animation of the ClickGui.", ClickGuiAnimation::Bounce, "Zoom", "Bounce");
+    EnumSettingT<ClickGuiAnimation> mAnimation = EnumSettingT<ClickGuiAnimation>("Animation", "The animation of the ClickGui.", ClickGuiAnimation::Zoom, "Zoom", "Bounce");
     NumberSetting mBlurStrength = NumberSetting("Blur Strength", "The strength of the blur.", 7.f, 0.f, 20.f, 0.1f);
     NumberSetting mEaseSpeed = NumberSetting("Ease Speed", "The speed of the easing.", 18.f, 5.f, 20.f, 0.1f);
     NumberSetting mMidclickRounding = NumberSetting("Midclick Rounding", "The value to round to when middle-clicking a NumberSetting.", 1.f, 0.01f, 1.f, 0.01f);
@@ -49,6 +49,7 @@ public:
     void onKeyEvent(class KeyEvent& event);
     float getEaseAnim(EasingUtil ease, int mode);
     void onRenderEvent(class RenderEvent& event);
+    void onBaseTickEvent(class BaseTickEvent& event);
 
     std::string getSettingDisplay() override {
         return mStyle.mValues[mStyle.as<int>()];

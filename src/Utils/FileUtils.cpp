@@ -49,6 +49,12 @@ void FileUtils::validateDirectories()
     createDirectory(getSolsticeDir() + "Skins\\"); //(skin stealing)
     createDirectory(getSolsticeDir() + "BlinkerSkins\\"); //(skin blinking)
     createDirectory(getSolsticeDir() + "Audio\\");
+    createDirectory(getSolsticeDir() + "Scripts\\");
+    createDirectory(getSolsticeDir() + "Scripts\\Commands\\");
+    createDirectory(getSolsticeDir() + "Scripts\\Modules\\");
+    //createFile(getSolsticeDir() + "Scripts\\Libs\\");
+
+
     spdlog::info("Directories created successfully.");
 }
 

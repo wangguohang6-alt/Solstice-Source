@@ -30,7 +30,14 @@ public:
         };
     }
 
+
+
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
+
     void onEnable() override;
     void onDisable() override;
     void onRenderEvent(class RenderEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
+
 };

@@ -10,14 +10,14 @@
 struct MoveInputComponent {
 public:
     CLASS_FIELD(bool, mIsMoveLocked, 0x8A);
-    CLASS_FIELD(bool, mIsSneakDown, 0x20);
-    CLASS_FIELD(bool, mIsJumping, 0x26);
+    CLASS_FIELD(bool, mIsSneakDown, 0x28);
+    CLASS_FIELD(bool, mIsJumping, 0x2F);
     CLASS_FIELD(bool, mIsJumping2, 0x80);
-    CLASS_FIELD(bool, mIsSprinting, 0x27);
-    CLASS_FIELD(bool, mForward, 0x2C);
-    CLASS_FIELD(bool, mBackward, 0x2D);
-    CLASS_FIELD(bool, mLeft, 0x2E);
-    CLASS_FIELD(bool, mRight, 0x2F);
+    CLASS_FIELD(bool, mIsSprinting, 0x30);
+    CLASS_FIELD(bool, mForward, 0xD);
+    CLASS_FIELD(bool, mBackward, 0xE);
+    CLASS_FIELD(bool, mLeft, 0xF);
+    CLASS_FIELD(bool, mRight, 0x10);
     CLASS_FIELD(glm::vec2, mMoveVector, 0x48);
 
     // padding to make the struct size 136

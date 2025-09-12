@@ -177,6 +177,10 @@ ID3D11ShaderResourceView* TargetHUD::getActorSkinTex(Actor* actor)
     if (actor)
     {
         auto skin = actor->getSkin();
+        if (skin == nullptr)
+        {
+            return texture;
+        }
         if (skin)
         {
             if (!loaded) {
@@ -299,8 +303,8 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
 
     anim = MathUtils::lerp(anim, showing ? 1.f : 0.f, ImGui::GetIO().DeltaTime * 10.f);
 
-    float xpad = 5;
-    float ypad = 5;
+    float xpad = 12.5;
+    float ypad = 12.5;
 
     if (anim < 0.01f)
     {
@@ -311,7 +315,7 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
 
     auto screenSize = ImGui::GetIO().DisplaySize;
 
-    auto boxSize = ImVec2(230 * anim, 70 * anim);
+    auto boxSize = ImVec2(240 * anim, 74 * anim);
     //auto boxPos = ImVec2(screenSize.x / 2 - boxSize.x / 2 + mXOffset.mValue, screenSize.y / 2 - boxSize.y / 2 + mYOffset.mValue);
     auto boxPos = ImVec2(mElement->getPos().x, mElement->getPos().y);
     // Center the box
@@ -321,8 +325,8 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
     mElement->mSize = glm::vec2(boxSize.x, boxSize.y);
     mElement->mCentered = true;
 
-    auto headSize = ImVec2(60 * anim, 60 * anim);
-    auto headPos = ImVec2(boxPos.x + xpad * anim, boxPos.y + ypad * anim);
+    auto headSize = ImVec2(55 * anim, 55 * anim);
+    auto headPos = ImVec2(boxPos.x + xpad * anim, boxPos.y - 2 + ypad * anim);
 
     float headQuartY = headSize.y / 4;
     auto headSize2 = ImVec2(MathUtils::lerp(headSize.x, 40 * anim, hurtTimeAnimPerc), MathUtils::lerp(headSize.y, 40 * anim, hurtTimeAnimPerc));
@@ -331,8 +335,9 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
 
     //drawList->AddShadowRect(boxPos, ImVec2(boxPos.x + boxSize.x, boxPos.y + boxSize.y), ImColor(0.f, 0.f, 0.f, 1.f * anim), 20.f, ImVec2(0, 0), ImDrawCornerFlags_All, 15.f * anim);
     // The background.
-    drawList->AddRectFilled(boxPos, ImVec2(boxPos.x + boxSize.x, boxPos.y + boxSize.y), ImColor(0.f, 0.f, 0.f, 0.5f * anim), 15.f * anim);
-
+    //drawList->AddRectFilled(boxPos, ImVec2(boxPos.x + boxSize.x, boxPos.y + boxSize.y), ImColor(0.f, 0.f, 0.f, 0.3f * anim), 20.f * anim);
+    ImRenderUtils::addBlur(ImVec4(boxPos.x, boxPos.y, boxPos.x + boxSize.x, boxPos.y + boxSize.y), 7.f, 20.f * anim);
+    ImRenderUtils::fillShadowRectangle(ImVec4(boxPos.x, boxPos.y, boxPos.x + boxSize.x, boxPos.y + boxSize.y), ImColor(0.f, 0.f, 0.f, 1.f * anim), anim, 30, ImDrawFlags_ShadowCutOutShapeBackground, 20.f * anim);
     ID3D11ShaderResourceView* texture = nullptr;
     static bool loaded = false;
     texture = getActorSkinTex(target);
@@ -347,8 +352,8 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
 
 
 
-    float healthStartY = boxPos.y + boxSize.y - (ypad + 2) * anim - 25 * anim;
-    float ysize = 20 * anim;
+    float healthStartY = boxPos.y + boxSize.y - (ypad + 2) * anim - 10 * anim;
+    float ysize = 15 * anim;
     auto healthBarStart = ImVec2(boxPos.x + headSize.x + (xpad * 2) * anim, healthStartY);
     int barSizeX = boxSize.x - xpad;
     auto healthBarEnd = ImVec2(boxPos.x + barSizeX, healthStartY + ysize);
@@ -357,7 +362,7 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
     auto textNameSize = ImGui::GetFont()->CalcTextSizeA(mFontSize.mValue * anim, FLT_MAX, 0, name.c_str());
     // the y for the name should be between the y of the health bar and the box y
     float ydiff = healthBarStart.y - boxPos.y;
-    auto textNamePos = ImVec2(headPos.x + headSize.x + xpad * anim, boxPos.y + ydiff / 2 - textNameSize.y / 2 + (ypad * anim));
+    auto textNamePos = ImVec2(headPos.x + headSize.x + xpad * anim, boxPos.y + 4 / 2 - textNameSize.y / 2 + (15 * anim));
 
 
     std::string healthStr = "+" + std::to_string((int)mAbsorption);
@@ -371,11 +376,14 @@ void TargetHUD::onRenderEvent(RenderEvent& event)
     if (texture)
         drawList->AddImageRounded(texture, headPos, headPos + headSize2, ImVec2(0, 0), ImVec2(1, 1), imageColor, 10.f * anim);
 
+    std::string mStatus = ClientInstance::get()->getLocalPlayer()->getHealth() >= mHealth ? "Winning" : "Losing";
+
     auto textStartPos = textNamePos;
     auto textEndPos = textHealthPos + textHealthSize;
     textEndPos.x = boxPos.x + boxSize.x - xpad * anim;
     drawList->PushClipRect(textStartPos, textEndPos, true); // So that the text doesn't go outside the box
-    ImRenderUtils::drawShadowText(drawList, name, textNamePos, ImColor(255, 255, 255, static_cast<int>(255 * anim)), mFontSize.mValue * anim, false);
+    ImRenderUtils::drawShadowText(drawList, name, textNamePos, ImColor(255, 255, 255, static_cast<int>(255 * anim)), 20 * anim, false);
+    ImRenderUtils::drawText(ImVec2(textNamePos.x, textNamePos.y + 20), mStatus, ImColor(255, 255, 255, static_cast<int>(255 * anim)), 1.f, anim, true);
     drawList->PopClipRect();
 
 

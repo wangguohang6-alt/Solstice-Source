@@ -18,6 +18,7 @@
 #include <Features/Modules/Visual/Interface.hpp>
 #include <Features/FeatureManager.hpp>
 #include <SDK/Minecraft/KeyboardMouseSettings.hpp>
+#include <SDK/Minecraft/MinecraftSim.hpp>
 
 void Scaffold::onEnable()
 {
@@ -56,6 +57,7 @@ void Scaffold::onDisable()
         if (mTowerMode.as<TowerMode>() != TowerMode::Vanilla)
         {
             player->getStateVectorComponent()->mVelocity.y = -5.0f;
+            ClientInstance::get()->getMinecraftSim()->setSimTimer(20.0f);
         }
     }
 }
@@ -205,6 +207,41 @@ bool Scaffold::tickPlace(BaseTickEvent& event)
                 mIsTowering = false;
                 stateVec ->mVelocity.y = -5.0f;
             }
+    }
+    case TowerMode::Timer: {
+        if (ClientInstance::get()->getMouseGrabbed()) break;
+        if ((space && mAllowMovement.mValue || space && !isMoving) && fallDistance < 3.f)
+        {
+            if (!mAllowMovement.mValue)
+            {
+                stateVec->mVelocity.x = 0;
+                stateVec->mVelocity.z = 0;
+            }
+            else if (!player->isOnGround())
+            {
+                glm::vec2 currentMotion = { stateVec->mVelocity.x, stateVec->mVelocity.z };
+                float movementSpeed = sqrt(currentMotion.x * currentMotion.x + currentMotion.y * currentMotion.y);
+                float movementYaw = atan2(currentMotion.y, currentMotion.x);
+                float moveYawDeg = movementYaw * (180 / IM_PI) - 90.f;
+                float playerYawDeg = actorRot->mYaw + MathUtils::getRotationKeyOffset();
+                float yawDiff = playerYawDeg - moveYawDeg;
+                float yawDiffRad = yawDiff * (IM_PI / 180);
+                float newMoveYaw = movementYaw + yawDiffRad;
+                stateVec->mVelocity.x = cos(newMoveYaw) * movementSpeed;;
+                stateVec->mVelocity.z = sin(newMoveYaw) * movementSpeed;
+            }
+            mStartY = player->getPos()->y;
+            mIsTowering = true;
+            ClientInstance::get()->getMinecraftSim()->setSimTimer(mTimerSpeed.mValue);
+            maxExtend = 0.f;
+        }
+        else if (wasTowering)
+        {
+            mIsTowering = false;
+            stateVec->mVelocity.y = -5.0f;
+            ClientInstance::get()->getMinecraftSim()->setSimTimer(20.0f);
+        }
+        break;
     }
     }
 
@@ -402,13 +439,21 @@ void Scaffold::onPacketOutEvent(PacketOutEvent& event)
             const auto transac = reinterpret_cast<ItemUseInventoryTransaction*>(it->mTransaction.get());
             if (transac->mActionType == ItemUseInventoryTransaction::ActionType::Place)
             {
-                transac->mClickPos = BlockUtils::clickPosOffsets[transac->mFace];
-                for (int i = 0; i < 3; i++)
-                {
-                    if (transac->mClickPos[i] == 0.5)
+                if (mClickPosition.mValue == ClickPosition::Normal) {
+                    transac->mClickPos = BlockUtils::clickPosOffsets[transac->mFace];
+                    for (int i = 0; i < 3; i++)
                     {
-                        transac->mClickPos[i] = MathUtils::randomFloat(-0.49f, 0.49f);
+                        if (transac->mClickPos[i] == 0.5)
+                        {
+                            transac->mClickPos[i] = MathUtils::randomFloat(-0.49f, 0.49f);
+                        }
                     }
+                }
+                else {
+                    transac->mClickPos = { MathUtils::randomFloat(-0.49f, 0.49f), 1.0f, MathUtils::randomFloat(-0.49f, 0.49f) };
+                }
+                if (mFirstEvent.mValue) {
+                    transac->mTriggerType = ItemUseInventoryTransaction::TriggerType::PlayerInput;
                 }
             }
         }
@@ -418,9 +463,9 @@ void Scaffold::onPacketOutEvent(PacketOutEvent& event)
     {
         auto paip = event.getPacket<PlayerAuthInputPacket>();
 
-        if (mTest.mValue)
+        if (mTest.mValue && !mIsTowering)
         {
-            paip->mPos.y = paip->mPos.y - 0.01f;
+            paip->mPos.y = floorf(mStartY) + (1.f + PLAYER_HEIGHT - 0.01f);
         }
 
         if (mShouldRotate && mRotateMode.mValue != RotateMode::None)

@@ -22,10 +22,10 @@ enum class SItemType
 
 class Item {
 public:
-    CLASS_FIELD(short, mItemId, 0xA2);
-    CLASS_FIELD(int, mArmorItemType, 0x244);
-    CLASS_FIELD(int, mProtection, 0x264);
-    CLASS_FIELD(std::string, mName, 0xD0);
+    CLASS_FIELD(short, mItemId, 0xAA);
+    CLASS_FIELD(int, mArmorItemType, 0x24C);
+    CLASS_FIELD(int, mProtection, 0x26C);
+    CLASS_FIELD(std::string, mName, 0xD8);
 
     int getArmorSlot();
     bool isHelmet();
@@ -37,6 +37,7 @@ public:
     bool isAxe();
     bool isShovel();
     int getItemTier();
+    int getArmorTier();
     SItemType getItemType();
 
 };

@@ -14,6 +14,7 @@ void VclipCommand::execute(const std::vector<std::string>& args)
         if(!isNumber(amountOfBlocks))
         {
             ChatUtils::displayClientMessage("§cInvalid input. Please enter a number!");
+            return;
         }
 
         auto player = ClientInstance::get()->getLocalPlayer();

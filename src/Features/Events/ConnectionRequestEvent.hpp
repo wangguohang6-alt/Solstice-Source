@@ -14,7 +14,7 @@ PrivateKeyManager* privKeyManager,
     std::string* tenantId, int8_t adRole, std::string* platformUserId, std::string* thirdPartyName,
     bool thirdPartyNameOnly, std::string* platformOnlineID, std::string* platformOfflineID, std::string* capeId,
     bool compatibleWithClientSideChunkGen*/
-
+    /*
 class ConnectionRequestEvent : public Event
 {
 public:
@@ -62,3 +62,4 @@ public:
 
 
 
+*/

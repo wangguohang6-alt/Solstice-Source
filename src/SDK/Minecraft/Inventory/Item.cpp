@@ -95,6 +95,28 @@ int Item::getItemTier()
     return 0;
 }
 
+int Item::getArmorTier()
+{
+    // Use the name of the item to determine the tier
+    static constexpr std::array<std::string_view, 7> tiers = {
+        "leather_",
+        "chainmail_",
+        "iron_",
+        "golden_",
+        "diamond_",
+        "netherite_"
+    };
+
+    for (int i = 0; i < tiers.size(); i++)
+    {
+        if (mName.starts_with(tiers[i])) {
+            return i;
+        }
+    }
+
+    return 0;
+}
+
 SItemType Item::getItemType()
 {
     if (isHelmet()) return SItemType::Helmet;

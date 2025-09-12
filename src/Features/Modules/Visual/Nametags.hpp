@@ -53,9 +53,13 @@ public:
         };
     }
 
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
+
     void onEnable() override;
     void onDisable() override;
     void onBaseTickEvent(BaseTickEvent& event);
     void onRenderEvent(class RenderEvent& event);
     void onNametagRenderEvent(class NametagRenderEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
 };

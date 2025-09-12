@@ -6,6 +6,7 @@
 #include <SDK/Minecraft/Actor/Actor.hpp>
 #include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/Rendering/GuiData.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
 #include <SDK/Minecraft/Options.hpp>
 #include <SDK/Minecraft/Rendering/GuiData.hpp>
 
@@ -15,14 +16,29 @@ float ChinaHat::toRadians(float deg) {
 
 void ChinaHat::onEnable() {
     gFeatureManager->mDispatcher->listen<RenderEvent, &ChinaHat::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &ChinaHat::onChengePerson>(this);
 }
 
 void ChinaHat::onDisable() {
     gFeatureManager->mDispatcher->deafen<RenderEvent, &ChinaHat::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &ChinaHat::onChengePerson>(this);
+}
+void ChinaHat::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
 }
 
+
+
 void ChinaHat::onRenderEvent(RenderEvent& event) {
-    if (ClientInstance::get()->getOptions()->mThirdPerson->value == 0) return;
+    if (mCurrentPerson == 0) return;
 
     int pointCount = 20;
     float radius = mSize.mValue;

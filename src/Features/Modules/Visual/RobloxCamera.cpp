@@ -8,6 +8,7 @@
 #include <Features/Events/BaseTickEvent.hpp>
 #include <Features/Events/LookInputEvent.hpp>
 #include <Features/Events/MouseEvent.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
 #include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/Options.hpp>
 #include <SDK/Minecraft/Actor/Actor.hpp>
@@ -39,7 +40,7 @@ void RobloxCamera::onBaseTickInitEvent(BaseTickInitEvent& event)
         actor->getFlag<CameraRenderPlayerModelComponent>();
         spdlog::info("[RobloxCamera] Initialized required components :3");
         mHasComponents = true;
-    }, event))
+        }, event))
     {
         spdlog::error("[RobloxCamera] Failed to initialize required components :(");
         NotifyUtils::notify("RobloxCamera: Failed to initialize required components :(", 15.f, Notification::Type::Error);
@@ -57,6 +58,7 @@ void RobloxCamera::onEnable()
     }
     gFeatureManager->mDispatcher->listen<LookInputEvent, &RobloxCamera::onLookInputEvent>(this);
     gFeatureManager->mDispatcher->listen<MouseEvent, &RobloxCamera::onMouseEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &RobloxCamera::onChengePerson>(this);
     gFeatureManager->mDispatcher->listen<ActorRenderEvent, &RobloxCamera::onActorRenderEvent>(this);
     gFeatureManager->mDispatcher->listen<BaseTickEvent, &RobloxCamera::onBaseTickEvent, nes::event_priority::LAST>(this);
 
@@ -71,6 +73,7 @@ void RobloxCamera::onEnable()
 void RobloxCamera::onDisable()
 {
     gFeatureManager->mDispatcher->deafen<LookInputEvent, &RobloxCamera::onLookInputEvent>(this);
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &RobloxCamera::onChengePerson>(this);
     gFeatureManager->mDispatcher->deafen<MouseEvent, &RobloxCamera::onMouseEvent>(this);
     gFeatureManager->mDispatcher->deafen<ActorRenderEvent, &RobloxCamera::onActorRenderEvent>(this);
     gFeatureManager->mDispatcher->deafen<BaseTickEvent, &RobloxCamera::onBaseTickEvent>(this);
@@ -100,7 +103,23 @@ void RobloxCamera::onActorRenderEvent(ActorRenderEvent& event)
         {
             event.cancel();
         }
+        
     }
+}
+void RobloxCamera::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+ 
+
+		mSetPerson = -1;
+
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+
 }
 
 void RobloxCamera::onMouseEvent(MouseEvent& event)
@@ -111,7 +130,7 @@ void RobloxCamera::onMouseEvent(MouseEvent& event)
 
     if (event.mActionButtonId == 4)
     {
-        if(event.mButtonData == 0x78 || event.mButtonData == 0x7F)
+        if (event.mButtonData == 0x78 || event.mButtonData == 0x7F)
         {
             mRadius.mValue -= mScrollIncrement.mValue;
             event.cancel();
@@ -135,7 +154,7 @@ void RobloxCamera::onBaseTickEvent(BaseTickEvent& event)
 
 void RobloxCamera::onLookInputEvent(LookInputEvent& event)
 {
-    ClientInstance::get()->getOptions()->mThirdPerson->value = 0;
+    mSetPerson = 0;
 
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player) return;
@@ -145,7 +164,8 @@ void RobloxCamera::onLookInputEvent(LookInputEvent& event)
         player->setFlag<RenderCameraComponent>(true);
         player->setFlag<CameraRenderPlayerModelComponent>(true);
         //player->setFlag<CameraRenderFirstPersonObjectsComponent>(false);
-    } else
+    }
+    else
     {
         player->setFlag<RenderCameraComponent>(false);
         player->setFlag<CameraRenderPlayerModelComponent>(false);

@@ -41,6 +41,7 @@ public:
     EnumSettingT<Mode> mMode = EnumSettingT("Mode", "The mode of the aura", Mode::Switch, "Single", "Multi", "Switch");
     EnumSettingT<AttackMode> mAttackMode = EnumSettingT("Attack Mode", "The mode of attack", AttackMode::Earliest, "Earliest", "Synched");
     EnumSettingT<RotateMode> mRotateMode = EnumSettingT("Rotate Mode", "The mode of rotation", RotateMode::Normal, "None", "Normal", "Flick");
+    BoolSetting mHeadYaw = BoolSetting("Head Yaw", "Whether or not to desync head yaw", false);
     EnumSettingT<SwitchMode> mSwitchMode = EnumSettingT("Switch Mode", "The mode of switching", SwitchMode::None, "None", "Full", "Spoof");
     EnumSettingT<BypassMode> mBypassMode = EnumSettingT("Bypass Mode", "The type of bypass", BypassMode::Raycast, "None", "FlareonV2", "Raycast");
     BoolSetting mAutoFireSword = BoolSetting("Auto Fire Sword", "Whether or not to automatically use the fire sword", false);
@@ -86,6 +87,7 @@ public:
             &mMode,
             &mAttackMode,
             &mRotateMode,
+            &mHeadYaw,
             &mSwitchMode,
             &mBypassMode,
 #ifdef __PRIVATE_BUILD__
@@ -160,6 +162,10 @@ public:
     int mLastSlot = 0;
     bool mIsThirdPerson = false;
 
+
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
+
     int getSword(Actor* target);
     bool shouldUseFireSword(Actor* target);
     void onEnable() override;
@@ -167,12 +173,17 @@ public:
     void rotate(Actor* target);
     void shootBow(Actor* target);
     void throwProjectiles(Actor* target);
+
     void onRenderEvent(class RenderEvent& event);
     void onBaseTickEvent(class BaseTickEvent& event);
     void onPacketOutEvent(class PacketOutEvent& event);
+
     void onPacketInEvent(class PacketInEvent& event);
     void onBobHurtEvent(class BobHurtEvent& event);
     void onBoneRenderEvent(class BoneRenderEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
+
+
     Actor* findObstructingActor(Actor* player, Actor* target);
 
     std::string getSettingDisplay() override {

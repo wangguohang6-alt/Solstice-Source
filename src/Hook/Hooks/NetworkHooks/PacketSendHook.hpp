@@ -15,6 +15,7 @@ public:
 
     static std::unique_ptr<Detour> mDetour;
     static inline int mCurrentTick = 0;
+    static inline bool mApplyJump = false; // Used by scripting
 
     static void* onPacketSend(void* _this, class Packet* packet);
     static void sendInputPacket(std::shared_ptr<class PlayerAuthInputPacket> packet);

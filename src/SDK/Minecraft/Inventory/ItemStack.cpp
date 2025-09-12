@@ -12,15 +12,3 @@ struct _SampleLol
 };
 
 static std::unique_ptr<_SampleLol> _smplData = std::make_unique<_SampleLol>();
-
-ItemStack ItemStack::fromDescriptor(class NetworkItemStackDescriptor const& desc)
-{
-    // send mental help
-    static auto func = SigManager::ItemStack_fromDescriptor;
-
-    auto palette = ClientInstance::get()->getLocalPlayer()->getLevel()->getBlockPalette();
-
-    ItemStack item = ItemStack();
-    MemUtils::callFastcall<ItemStack*, ItemStack*, NetworkItemStackDescriptor const&, BlockPalette*, bool>(func, &item, desc, palette, true);
-    return item;
-}

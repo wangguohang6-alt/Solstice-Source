@@ -58,5 +58,4 @@ public:
     class SyncedPlayerMovementSettings* getPlayerMovementSettings();
     std::vector<Actor*> getRuntimeActorList();
     LevelData* getLevelData();
-    class BlockPalette* getBlockPalette();
 };

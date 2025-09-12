@@ -51,7 +51,7 @@ void MouseHook::onMouse(void* _this, char actionButtonId, int buttonData, short 
             io.MouseDown[2] = buttonData;
             break;
         case 4:
-            if(buttonData == 0x78 || buttonData == 0x7F)
+            if (buttonData == 0x78 || buttonData == 0x7F)
             {
                 io.AddMouseWheelEvent(0, 0.5); // Scroll up
             }

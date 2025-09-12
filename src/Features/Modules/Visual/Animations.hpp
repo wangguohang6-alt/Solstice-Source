@@ -31,7 +31,7 @@ public:
         addSettings(
             &mAnimation,
             &mSwingTime,
-            &mNoSwitchAnimation,
+            //&mNoSwitchAnimation,
             &mFluxSwing,
             &mThirdPersonBlock,
             // &mXRot,

@@ -18,10 +18,8 @@ std::vector<unsigned char> gNoSwitchAnimation = {
     0x90, 0x90, 0x90, 0x90, 0x90 // nop
 };
 
-DEFINE_PATCH_FUNC(patchNoSwitchAnimation, SigManager::ItemInHandRenderer_render_bytepatch, gNoSwitchAnimation);
+//DEFINE_PATCH_FUNC(patchNoSwitchAnimation, SigManager::ItemInHandRenderer_render_bytepatch, gNoSwitchAnimation);
 DEFINE_NOP_PATCH_FUNC(patchFluxSwing, SigManager::FluxSwing, 0x5);
-DEFINE_NOP_PATCH_FUNC(patchDefaultSwing, SigManager::ItemInHandRenderer_renderItem_bytepatch, 0x8);
-DEFINE_NOP_PATCH_FUNC(patchDefaultSwing2, SigManager::ItemInHandRenderer_renderItem_bytepatch+11, 0x8);
 
 void Animations::onEnable()
 {
@@ -36,10 +34,8 @@ void Animations::onEnable()
         MemUtils::setProtection(reinterpret_cast<uintptr_t>(mSwingAngle), sizeof(float), PAGE_READWRITE);
     }
 
-    patchNoSwitchAnimation(mNoSwitchAnimation.mValue);
+    //patchNoSwitchAnimation(mNoSwitchAnimation.mValue);
     patchFluxSwing(mFluxSwing.mValue);
-    patchDefaultSwing(mAnimation.mValue == Animation::Test);
-    patchDefaultSwing2(mAnimation.mValue == Animation::Test);
 }
 
 void Animations::onDisable()
@@ -48,13 +44,10 @@ void Animations::onDisable()
     gFeatureManager->mDispatcher->deafen<BaseTickEvent, &Animations::onBaseTickEvent>(this);
     gFeatureManager->mDispatcher->deafen<BoneRenderEvent, &Animations::onBoneRenderEvent>(this);
     gFeatureManager->mDispatcher->deafen<BobHurtEvent, &Animations::onBobHurtEvent>(this);
-    patchNoSwitchAnimation(false);
+    //patchNoSwitchAnimation(false);
     patchFluxSwing(false);
 
     if (mSwingAngle) *mSwingAngle = glm::radians(-80.f);
-
-    patchDefaultSwing(false);
-    patchDefaultSwing2(false);
 }
 
 
@@ -62,10 +55,8 @@ void Animations::onBaseTickEvent(BaseTickEvent& event)
 {
     auto player = event.mActor;
 
-    patchNoSwitchAnimation(mNoSwitchAnimation.mValue);
+    //patchNoSwitchAnimation(mNoSwitchAnimation.mValue);
     patchFluxSwing(mFluxSwing.mValue);
-    patchDefaultSwing(mAnimation.mValue == Animation::Test);
-    patchDefaultSwing2(mAnimation.mValue == Animation::Test);
 
     if (mOnlyOnBlock.mValue && mSwingAngle)
     {

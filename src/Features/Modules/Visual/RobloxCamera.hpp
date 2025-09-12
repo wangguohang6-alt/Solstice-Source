@@ -3,6 +3,7 @@
 // Created by vastrakai on 7/23/2024.
 //
 
+#include <Features/Events/BaseTickEvent.hpp>
 #include <Features/Modules/Module.hpp>
 #include <Features/Events/BaseTickEvent.hpp>
 
@@ -38,6 +39,10 @@ public:
 
     bool mHasComponents = false;
     float mCurrentDistance = 4.f;
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
+
+
 
     void onEnable() override;
     void onDisable() override;
@@ -45,4 +50,5 @@ public:
     void onMouseEvent(class MouseEvent& event);
     void onBaseTickEvent(class BaseTickEvent& event);
     void onLookInputEvent(class LookInputEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
 };

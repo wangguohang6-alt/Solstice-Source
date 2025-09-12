@@ -12,6 +12,9 @@
 #include "Hooks/ContainerHooks/ContainerScreenControllerHook.hpp"
 #include "Hooks/MiscHooks/FireBlockChangedHook.hpp"
 #include "Hooks/MiscHooks/KeyHook.hpp"
+#include "Hooks/MiscHooks/FovHook.hpp"
+#include "Hooks/MiscHooks/GammaHook.hpp"
+#include "Hooks/MiscHooks/ThirdPersonHook.hpp"
 #include "Hooks/MiscHooks/MouseHook.hpp"
 #include "Hooks/MiscHooks/PreGameHook.hpp"
 #include "Hooks/NetworkHooks/ConnectionRequestHook.hpp"
@@ -50,7 +53,10 @@ void HookManager::init(bool initLp)
         ADD_HOOK(D3DHook);
         ADD_HOOK(ContainerScreenControllerHook);
         ADD_HOOK(MouseHook);
-        ADD_HOOK(ConnectionRequestHook);
+        ADD_HOOK(FovHook);
+        ADD_HOOK(GammaHook);
+        ADD_HOOK(ThirdPersonHook);
+       // ADD_HOOK(ConnectionRequestHook);
         ADD_HOOK(PacketReceiveHook);
         ADD_HOOK(PacketSendHook);
         ADD_HOOK(RakPeerHooks);

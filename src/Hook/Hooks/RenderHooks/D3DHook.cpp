@@ -180,6 +180,39 @@ bool D3DHook::loadTextureFromEmbeddedResource(const char* resourceName, ID3D11Sh
 	return shaderResourceView;
 }*/
 
+// createTextureFromFile
+bool D3DHook::createTextureFromFile(const char* filename, ID3D11ShaderResourceView** out_srv, int* out_width, int* out_height)
+{
+    if (!filename || !out_srv || !out_width || !out_height) {
+        spdlog::error("Invalid argument(s) provided to CreateTextureFromFile.");
+        return false;
+    }
+
+    // Load the image from file
+    int width, height, channels;
+    uint8_t* data = stbi_load(filename, &width, &height, &channels, STBI_rgb_alpha);
+    if (!data) {
+        spdlog::error("Failed to load image from file: {0}", filename);
+        return false;
+    }
+
+    // Create the texture from the image data
+    if (!createTextureFromData(data, width, height, out_srv)) {
+        spdlog::error("Failed to create texture from data.");
+        stbi_image_free(data);
+        return false;
+    }
+
+    // Clean up the image data
+    stbi_image_free(data);
+
+    // Set the output width and height
+    *out_width = width;
+    *out_height = height;
+
+    return true;
+}
+
 bool D3DHook::createTextureFromData(const uint8_t* data, int width, int height, ID3D11ShaderResourceView** out_srv)
 {
     ID3D11Device* device = gDevice11.get();

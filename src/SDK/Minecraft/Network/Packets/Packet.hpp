@@ -56,6 +56,7 @@ public:
     virtual ~Packet();
     virtual PacketID getId() { return PacketID::Unknown; }
     virtual std::string getName();
+    virtual void checkSize();
     virtual void write(class BinaryStream&);
     virtual void read(class BinaryStream&);
     virtual void readExtended(class ReadOnlyBinaryStream&);

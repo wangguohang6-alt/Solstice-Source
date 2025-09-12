@@ -12,6 +12,8 @@
 #include <SDK/Minecraft/Actor/Actor.hpp>
 #include <SDK/Minecraft/Actor/Components/CameraComponent.hpp>
 #include <SDK/Minecraft/Network/Packets/MovePlayerPacket.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
+
 #include <SDK/Minecraft/Network/Packets/PlayerAuthInputPacket.hpp>
 
 void Freelook::onEnable()
@@ -25,6 +27,7 @@ void Freelook::onEnable()
 
     gFeatureManager->mDispatcher->listen<BaseTickEvent, &Freelook::onBaseTickEvent>(this);
     gFeatureManager->mDispatcher->listen<PacketOutEvent, &Freelook::onPacketOutEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &Freelook::onChengePerson>(this);
 
     auto gock = player->getActorHeadRotationComponent();
     mHeadYaw = { gock->mHeadRot, gock->mOldHeadRot };
@@ -56,8 +59,8 @@ void Freelook::onEnable()
         }
     }
 
-    mLastCameraState = ClientInstance::get()->getOptions()->mThirdPerson->value;
-    ClientInstance::get()->getOptions()->mThirdPerson->value = 1;
+    mLastCameraState = mCurrentPerson;
+    mSetPerson = 1;
 }
 
 void Freelook::onDisable()
@@ -72,9 +75,25 @@ void Freelook::onDisable()
     gFeatureManager->mDispatcher->deafen<PacketOutEvent, &Freelook::onPacketOutEvent>(this);
 
     auto options = ClientInstance::get()->getOptions();
-    options->mThirdPerson->value = mLastCameraState;
+    mSetPerson = mLastCameraState;
     mResetRot = true;
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &Freelook::onChengePerson>(this);
+
 }
+
+
+void Freelook::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+}
+
 
 void Freelook::onBaseTickEvent(BaseTickEvent& event)
 {

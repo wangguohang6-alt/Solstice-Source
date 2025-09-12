@@ -48,12 +48,11 @@ ImColor MathUtils::lerpImColor(ImColor& a, ImColor& b, float t)
     return ImColor(lerp(a.Value.x, b.Value.x, t), lerp(a.Value.y, b.Value.y, t), lerp(a.Value.z, b.Value.z, t), lerp(a.Value.w, b.Value.w, t));
 }
 
-float MathUtils::getRotationKeyOffset(bool raw, bool allowStrafe)
+float MathUtils::getRotationKeyOffset(bool allowStrafe)
 {
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player) return 0;
     auto moveInput = player->getMoveInputComponent();
-    if (raw) moveInput = reinterpret_cast<MoveInputComponent*>(player->getRawMoveInputComponent());
 
     bool isMoving = moveInput->mForward || moveInput->mBackward || moveInput->mLeft || moveInput->mRight;
     if (!isMoving) return 0;
@@ -87,8 +86,8 @@ float MathUtils::getRotationKeyOffset(bool raw, bool allowStrafe)
 }
 
 
-glm::vec2 MathUtils::getMotion(float yaw, float speed, bool raw, bool allowStrafe) {
-    yaw += getRotationKeyOffset(raw, allowStrafe) + 90;
+glm::vec2 MathUtils::getMotion(float yaw, float speed, bool allowStrafe) {
+    yaw += getRotationKeyOffset(allowStrafe) + 90;
 
     float calcYaw = glm::radians(yaw);
 

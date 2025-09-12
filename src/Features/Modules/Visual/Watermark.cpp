@@ -69,7 +69,7 @@ void Watermark::onRenderEvent(RenderEvent& event)
         FontHelper::pushPrefFont(true);
     }
 
-    static std::string watermarkText = "solstice";
+    static std::string watermarkText = "solstice (private)";
     static float size = 45;
 
     ImVec2 textSize = ImGui::GetFont()->CalcTextSizeA(size, FLT_MAX, 0.0f, watermarkText.c_str(), nullptr);
@@ -95,8 +95,8 @@ void Watermark::onRenderEvent(RenderEvent& event)
         ImColor shadowColor = ImColor(color.Value.x * 0.25f, color.Value.y * 0.25f, color.Value.z * 0.25f, 0.925f);
         ImVec2 shadowPos = renderPosition;
 
-        shadowPos.x += 3.25f;
-        shadowPos.y += 3.25f;
+        shadowPos.x += 1.f;
+        shadowPos.y += 1.f;
         ImGui::GetBackgroundDrawList()->AddText(ImGui::GetFont(), size, shadowPos, shadowColor, &c, &c + 1);
 
         // draw the character

@@ -3,41 +3,42 @@
 //
 
 #pragma once
-
+#include <SDK/SigManager.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 enum AttributeId {
-    ZombieSpawnReinforcementsChange = -1,
-    PlayerHunger = 2,
-    PlayerSaturation = 3,
-    PlayerExhaustion = 4,
-    PlayerLevel = 5,
-    PlayerExperience = 6,
     Health = 7,
-    FollowRange = 8,
-    KnockbackResistance = 9,
-    MovementSpeed = 10,
-    UnderwaterMovementSpeed = 11,
-    LavaMovementSpeed = 12,
-    AttackDamage = 13,
     Absorption = 14,
-    Luck = 15,
-    JumpStrength = 16, // for horse?
 };
 
 class AttributeInstance {
-    PAD(0x74);
-    float mMinimumValue;
-    float mMaximumValue;
-    float mCurrentValue;
+    PAD(0x60);
+
+    union {
+        float mDefaultValues[3];
+        struct {
+            float mDefaultMinValue;
+            float mDefaultMaxValue;
+            float mDefaultValue;
+        };
+    };
+
+    union {
+        float mCurrentValues[3];
+        struct {
+            float mCurrentMinValue;
+            float mCurrentMaxValue;
+            float mCurrentValue;
+        };
+    };
 
     virtual ~AttributeInstance();
     virtual void tick();
 };
 
-static_assert(sizeof(AttributeInstance) == 0x88, "AttributeInstance size is not correct");
+static_assert(sizeof(AttributeInstance) == 0x80, "AttributeInstance size is not correct");
 
 class Attribute {
 public: // I'm pretty sure this is a HashedString but i don't really care
@@ -121,10 +122,18 @@ class BaseAttributeMap
 {
 public:
     std::unordered_map<int, AttributeInstance> mAttributes;
-    std::vector<uint64_t> mDirtyAttributes;
+    //std::vector<uint64_t> mDirtyAttributes;
+private:
+	PAD(0x20);
+public:
+
+    AttributeInstance* getInstance(unsigned int id)
+    {
+		return MemUtils::callFastcall<AttributeInstance*>(SigManager::BaseAttributeMap_getInstance, this, id);
+    }
 };
 
-static_assert(sizeof(BaseAttributeMap) == 0x58);
+static_assert(sizeof(BaseAttributeMap) == 0x60);
 
 
 struct AttributesComponent
@@ -132,4 +141,4 @@ struct AttributesComponent
     BaseAttributeMap mBaseAttributeMap;
 };
 
-static_assert(sizeof(AttributesComponent) == 0x58);
+static_assert(sizeof(AttributesComponent) == 0x60);

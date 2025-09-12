@@ -130,7 +130,7 @@ void IrcClient::sendData(std::string data)
 
 std::string IrcClient::getHwid()
 {
-    return Solstice::sHWID;
+    return "No HWID in this client.";
 }
 
 void IrcClient::genClientKey()
@@ -602,7 +602,7 @@ std::string fnv1a_hash32(const std::string& str)
 
 std::string IrcClient::getPreferredUsername()
 {
-    return Solstice::Prefs->mIrcName == "" ? fnv1a_hash32(Solstice::sHWID) : Solstice::Prefs->mIrcName;
+    return Solstice::Prefs->mIrcName == "" ? fnv1a_hash32("No HWID in this client.") : Solstice::Prefs->mIrcName;
 }
 
 void IrcClient::sendPlayerIdentity(bool forced)

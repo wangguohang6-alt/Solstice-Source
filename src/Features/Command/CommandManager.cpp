@@ -25,6 +25,7 @@
 #include "Commands/GamemodeCommand.hpp"
 #include "Commands/HiveStatsCommand.hpp"
 #include "Commands/IrcCommand.hpp"
+#include "Commands/LuaCommand.hpp"
 #include "Commands/VclipCommand.hpp"
 #include "Commands/SnipeCommand.hpp"
 #include "Commands/NameProtectCommand.hpp"
@@ -58,6 +59,7 @@ void CommandManager::init()
     ADD_COMMAND(NameProtectCommand);
     ADD_COMMAND(TeleportCommand);
 
+    ADD_COMMAND(LuaCommand);
 
     // Look for any commands that have duplicate names
     for (size_t i = 0; i < mCommands.size(); i++)
@@ -101,7 +103,7 @@ void CommandManager::handleCommand(ChatEvent& event)
 
     event.setCancelled(true);
 
-    // Remove the dot from the command
+    // Remove the dot from the comand
     std::string cmd = command.substr(1);
 
     // Split the command into arguments
@@ -120,7 +122,8 @@ void CommandManager::handleCommand(ChatEvent& event)
 
     if (it == mCommands.end())
     {
-        if (!event.mSpecial) ChatUtils::displayClientMessage(xorstr_("§cThe command §6'") + std::string(commandName) + xorstr_("'§c does not exist!"));
+        bool found = gFeatureManager->mScriptManager->findAndExecCommand(std::string(commandName), args);
+        if (!found && !event.mSpecial) ChatUtils::displayClientMessage("§cThe command " + std::string(commandName) + " was not found!");
         return;
     }
 

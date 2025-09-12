@@ -34,8 +34,17 @@ public:
     float mPastFov = 0;
     float mCurrentValue = 0;
 
+	float mCurrentZoom = 0;
+    float mSetZoom = -1;
+
+
     void onEnable() override;
     void onDisable() override;
     void onMouseEvent(class MouseEvent& event);
     void onRenderEvent(class RenderEvent& event);
+	void onBaseTickEvent(class BaseTickEvent& event);
+    void onFov(class FovEvent& event);
+    bool fs = false;
+    float fv;
+    float fov = 0;
 };

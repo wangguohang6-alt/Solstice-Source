@@ -7,6 +7,9 @@
 #include <SDK/Minecraft/Actor/Actor.hpp>
 #include <SDK/Minecraft/World/BlockLegacy.hpp>
 #include <SDK/Minecraft/World/HitResult.hpp>
+#include <Features/Events/BaseTickEvent.hpp>
+#include <Features/Events/RenderEvent.hpp>
+
 
 
 

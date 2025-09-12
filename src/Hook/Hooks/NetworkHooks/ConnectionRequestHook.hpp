@@ -14,7 +14,7 @@ class ConnectionRequest* result, class PrivateKeyManager* privKeyManager,
                           bool isEditorMode, bool IsEduMode, std::string* tenantId, int8_t adRole, std::string* platformUserId,
                           std::string* thirdPartyName, bool thirdPartyNameOnly, std::string* platformOnlineID, std::string* platformOfflineID,
                           std::string* capeId, bool CompatibleWithClientSideChunkGen*/
-
+                          /*
 class ConnectionRequestHook : public Hook {
 public:
     ConnectionRequestHook() : Hook()
@@ -24,8 +24,8 @@ public:
 
     static std::unique_ptr<Detour> mDetour;
 
-    static void* createRequestDetourFunc(class ConnectionRequest* result, class PrivateKeyManager* privKeyManager,
-                                         class Certificate* cert, std::string* selfSignedId, std::string* serverAddress, int64_t clientRandomId,
+    static void* createRequestDetourFunc(void* a1, __int64 a2,
+                                         class Certificate* cert, std::string* serverAddress, int64_t clientRandomId,
                                          std::string* skinId, const char* skinData, const char* capeData, class SerializedSkin* skin,
                                          std::string* deviceId, int inputMode, int uiProfile, int guiScale, std::string* languageCode,
                                          bool isEditorMode, bool IsEduMode, std::string* tenantId, int8_t adRole, std::string* platformUserId,
@@ -34,3 +34,4 @@ public:
     void init() override;
 };
 
+*/

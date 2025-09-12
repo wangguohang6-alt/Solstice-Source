@@ -16,17 +16,14 @@ public:
     enum class Mode
     {
         Normal,
-        Detached
     };
 
-    EnumSettingT<Mode> mMode = EnumSettingT<Mode>("Mode", "The mode of the freecam\nNormal: Fakes the player's position\nDetached: Moves independently of the player", Mode::Normal, "Normal", "Detached");
+    EnumSettingT<Mode> mMode = EnumSettingT<Mode>("Mode", "The mode of the freecam\nNormal: Fakes the player's position\nDetached: Moves independently of the player", Mode::Normal, "Normal");
     NumberSetting mSpeed = NumberSetting("Speed", "Speed of the freecam", 5.5f, 0.1f, 10.0f, 0.1f);
-    BoolSetting mDisableOnLagback = BoolSetting("Disable On Lagback", "Disable freecam if you receive a teleport", true);
 
     Freecam() : ModuleBase<Freecam>("Freecam", "Move independently of your player", ModuleCategory::Player, 0, false) {
         addSetting(&mMode);
         addSetting(&mSpeed);
-        addSetting(&mDisableOnLagback);
 
         mNames = {
             {Lowercase, "freecam"},
@@ -34,18 +31,18 @@ public:
             {Normal, "Freecam"},
             {NormalSpaced, "Freecam"}
         };
-
-        gFeatureManager->mDispatcher->listen<LookInputEvent, &Freecam::onLookInputEvent>(this);
     }
 
     ActorRotationComponent mLastRot;
     ActorHeadRotationComponent mLastHeadRot;
     MobBodyRotationComponent mLastBodyRot;
+    AABB mOldAABB;
     glm::vec3 mAABBMin;
     glm::vec3 mAABBMax;
     glm::vec3 mSvPos;
     glm::vec3 mSvPosOld;
     glm::vec3 mOldPos;
+    glm::vec3 mLastVelocity;
 
     // Detached mode vars
     glm::vec3 mOrigin;
@@ -58,6 +55,8 @@ public:
     glm::vec2 mHeadYaw;
     int mLastCameraState = 0;
 
+    bool mShouldDisable = false;
+
 
     glm::vec3 getLerpedOrigin()
     {
@@ -69,8 +68,7 @@ public:
     void onPacketInEvent(class PacketInEvent& event);
     void onPacketOutEvent(class PacketOutEvent& event);
     void onBaseTickEvent(class BaseTickEvent& event);
-    void onActorRenderEvent(class ActorRenderEvent& event);
-    void onLookInputEvent(class LookInputEvent& event);
+    void onRenderEvent(class RenderEvent& event);
 
     std::string getSettingDisplay() override
     {

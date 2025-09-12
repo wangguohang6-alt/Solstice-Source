@@ -45,6 +45,7 @@ public:
     void onDisable() override;
     void onRenderEvent(class RenderEvent& event);
     void onModuleStateChange(ModuleStateChangeEvent& event);
+    void onModuleScriptStateChange(ModuleScriptStateChangeEvent& event);
     void onConnectionRequestEvent(class ConnectionRequestEvent& event);
     void onNotifyEvent(class NotifyEvent& event);
 

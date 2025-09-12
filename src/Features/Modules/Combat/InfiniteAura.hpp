@@ -61,7 +61,7 @@ public:
     std::shared_ptr<class MovePlayerPacket> createPacketForPos(glm::vec3 pos);
     std::vector<std::shared_ptr<class MovePlayerPacket>> pathToPos(glm::vec3 from, glm::vec3 to);
     void onBaseTickEvent(class BaseTickEvent& event);
-    void onPacketOutEvent(PacketOutEvent& event);
-    void onPacketInEvent(PacketInEvent& event);
-    void onRenderEvent(RenderEvent& event);
+    void onPacketOutEvent(class PacketOutEvent& event);
+    void onPacketInEvent(class PacketInEvent& event);
+    void onRenderEvent(class RenderEvent& event);
 };

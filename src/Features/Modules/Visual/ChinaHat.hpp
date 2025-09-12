@@ -27,7 +27,8 @@ public:
                 {NormalSpaced, "China Hat"}
         };
     }
-
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
     int mTicks = 0;
 
     float toRadians(float deg);
@@ -35,4 +36,6 @@ public:
     void onEnable() override;
     void onDisable() override;
     void onRenderEvent(class RenderEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
+
 };

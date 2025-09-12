@@ -45,8 +45,8 @@ public:
     static ImVec4 lerp(ImVec4& a, ImVec4& b, float t);
     static ImVec2 lerp(ImVec2& a, ImVec2& b, float t);
     static ImColor lerpImColor(ImColor& a, ImColor& b, float t);
-    static float getRotationKeyOffset(bool raw = false, bool allowStrafe = true);
-    static glm::vec2 getMotion(float yaw, float speed, bool raw = false, bool allowStrafe = true);
+    static float getRotationKeyOffset(bool allowStrafe = true);
+    static glm::vec2 getMotion(float yaw, float speed, bool allowStrafe = true);
     template <typename T>
     static T clamp(T value, T min, T max) {
         return std::max(min, std::min(value, max));

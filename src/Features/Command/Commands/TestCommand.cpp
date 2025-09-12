@@ -19,11 +19,35 @@ void TestCommand::execute(const std::vector<std::string>& args)
     // get the first argument, if any
     if (args.size() <= 1)
     {
-        ChatUtils::displayClientMessage("Available subcommands: showconsole, fallback, setloglevel[log level], enforcedebug, crash");
+        ChatUtils::displayClientMessage("Available subcommands: showconsole, fallback, setloglevel[log level], enforcedebug, crash, exec");
         return;
     }
 
     const std::string& arg = args[1];
+
+    if (arg == "exec")
+    {
+        // Use the next argument as the script name
+        if (args.size() < 3)
+        {
+            ChatUtils::displayClientMessage("Usage: .test exec [script name]");
+            return;
+        }
+
+        const std::string& scriptName = args[2];
+        // Gather arguments for the script
+        std::vector<std::string> scriptArgs;
+        for (size_t i = 3; i < args.size(); i++)
+        {
+            scriptArgs.push_back(args[i]);
+        }
+
+        bool execSuccess = gFeatureManager->mScriptManager->findAndExecCommand(scriptName, scriptArgs);
+        if (!execSuccess)
+        {
+            ChatUtils::displayClientMessage("§cThe command " + scriptName + " was not found!");
+        }
+    }
 
     if (arg == "showconsole")
     {

@@ -30,7 +30,7 @@ void AutoClicker::onRenderEvent(RenderEvent& event)
     auto ci = ClientInstance::get();
     auto player = ci->getLocalPlayer();
 
-    if (!ci->getLocalPlayer() || ci->getScreenName() != "hud_screen") return;
+    if (!ci->getLocalPlayer() || ci->getScreenName() != "hud_screen") return; //TOOD: fix screen name
 
     auto hitres = ci->getLocalPlayer()->getLevel()->getHitResult();
 
@@ -48,7 +48,6 @@ void AutoClicker::onRenderEvent(RenderEvent& event)
     if (mRandomCPSMin.as<int>() > mRandomCPSMax.as<int>())
         mRandomCPSMin.mValue = mRandomCPSMax.mValue;
 
-
     if(mClickMode.mValue == ClickMode::Both)
     {
         bool lmb = ImGui::IsMouseDown(0);
@@ -64,8 +63,8 @@ void AutoClicker::onRenderEvent(RenderEvent& event)
         {
             if(mAllowBlockBreaking.mValue)
             {
-                MouseHook::simulateMouseInput(1, 0, 0, 0, 0, 0);
                 MouseHook::simulateMouseInput(1, 1, 0, 0, 0, 0);
+                MouseHook::simulateMouseInput(1, 0, 0, 0, 0, 0);
             }
             else
             {
@@ -85,9 +84,7 @@ void AutoClicker::onRenderEvent(RenderEvent& event)
         int button = mClickMode.as<int>();
 
         if (mHold.mValue && !ImGui::IsMouseDown(button)) return;
-
         static uint64_t lastAction = 0;
-
         if (NOW - lastAction < 1000 / mCurrentCPS) return;
 
         lastAction = NOW;

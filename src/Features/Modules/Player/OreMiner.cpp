@@ -1,7 +1,7 @@
 // 7/28/2024
 #include "OreMiner.hpp"
 
-#include "Regen.hpp"
+//#include "Regen.hpp"
 
 #include <Features/FeatureManager.hpp>
 #include <Features/Events/BaseTickEvent.hpp>
@@ -12,9 +12,12 @@
 #include <SDK/Minecraft/Inventory/PlayerInventory.hpp>
 #include <SDK/Minecraft/Actor/GameMode.hpp>
 #include <SDK/Minecraft/Network/PacketID.hpp>
+#include <SDK/Minecraft/Network/MinecraftPackets.hpp>
+#include <SDK/Minecraft/Network/LoopbackPacketSender.hpp>
 #include <SDK/Minecraft/Network/Packets/InventoryTransactionPacket.hpp>
 #include <SDK/Minecraft/Network/Packets/PlayerAuthInputPacket.hpp>
 #include <SDK/Minecraft/Network/Packets/MobEquipmentPacket.hpp>
+#include <SDK/Minecraft/Network/Packets/AnimatePacket.hpp>
 #include <SDK/Minecraft/World/BlockLegacy.hpp>
 #include <SDK/Minecraft/World/Level.hpp>
 #include <SDK/Minecraft/World/HitResult.hpp>
@@ -93,6 +96,22 @@ void OreMiner::queueBlock(glm::ivec3 blockPos) {
     BlockUtils::startDestroyBlock(blockPos, mCurrentBlockFace);
     mToolSlot = bestToolSlot;
     mShouldSetbackSlot = true;
+
+    if (mFlareonV2.mValue)
+    {
+        if (mSwingMode.mValue == SwingMode::Normal)
+        {
+            ClientInstance::get()->getLocalPlayer()->swing();
+        }
+        else {
+            auto pkt = MinecraftPackets::createPacket<AnimatePacket>();
+            pkt->mRuntimeID = ClientInstance::get()->getLocalPlayer()->getRuntimeID();
+            pkt->mAction = Action::Swing;
+            ClientInstance::get()->getPacketSender()->send(pkt.get());
+        }
+        if (mFirstRotation.mValue)
+            mShouldRotate = true;
+    }
 }
 
 OreMiner::PathFindResult OreMiner::getBestPathToBlock(glm::ivec3 blockPos) {
@@ -192,13 +211,30 @@ void OreMiner::onBaseTickEvent(BaseTickEvent& event)
     ItemStack *stack = supplies->getContainer()->getItem(pickaxeSlot);
     bool hasPickaxe = stack->mItem && stack->getItem()->getItemType() == SItemType::Pickaxe;
 
-    if (Regen::mIsMiningBlock || Regen::mWasMiningBlock || player->getStatusFlag(ActorFlags::Noai) || !hasPickaxe || player->isDestroying() || mStealing || isScaffold) {
-        reset();
-        mShouldSetbackSlot = false;
-        return;
-    }
+    //if (Regen::mIsMiningBlock || Regen::mWasMiningBlock || player->getStatusFlag(ActorFlags::Noai) || !hasPickaxe || player->isDestroying() || mStealing || isScaffold || (mFlareonV2.mValue && mOnGround.mValue && !player->isOnGround())) {
+     //   reset();
+      //  mShouldSetbackSlot = false;
+       // return;
+    //}
 
     if (isValidBlock(mCurrentBlockPos, (mUncoverMode.mValue == UncoverMode::None), !mIsUncovering)) { // Check if current block is valid
+        if (mFlareonV2.mValue) {
+            if (mSwingMode.mValue == SwingMode::Normal)
+            {
+                player->swing();
+            }
+            else {
+                auto pkt = MinecraftPackets::createPacket<AnimatePacket>();
+                pkt->mRuntimeID = player->getRuntimeID();
+                pkt->mAction = Action::Swing;
+                ClientInstance::get()->getPacketSender()->send(pkt.get());
+            }
+        }
+        if (mFlareonV2.mValue) {
+            if (mRotationMode.mValue == RotationMode::Normal) {
+                mShouldRotate = true;
+            }
+        }
         Block* currentBlock = source->getBlock(mCurrentBlockPos);
         int exposedFace = BlockUtils::getExposedFace(mCurrentBlockPos);
         int bestToolSlot = ItemUtils::getBestBreakingTool(currentBlock, mHotbarOnly.mValue);
@@ -390,6 +426,7 @@ void OreMiner::onPacketOutEvent(PacketOutEvent& event)
             glm::vec2 rotations = MathUtils::getRots(*player->getPos(), blockAABB);
             paip->mRot = rotations;
             paip->mYHeadRot = rotations.y;
+            if (mFlareonV2.mValue && mHeadYaw.mValue) paip->mYHeadRot += 90.0f;
             mShouldRotate = false;
         }
     }

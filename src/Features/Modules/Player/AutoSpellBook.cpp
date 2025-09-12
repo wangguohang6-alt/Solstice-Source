@@ -35,9 +35,10 @@ int AutoSpellBook::getHealthSpell() {
         auto item = player->getSupplies()->getContainer()->getItem(i);
         if (!item->mItem) continue;
 
-        if (StringUtils::containsIgnoreCase(item->getCustomName(), "Spell of Life")) {
+        if (item->getCustomName().find("Spell of Life")) {
             return i;
         }
+		ChatUtils::displayClientMessage("Item: " + item->getCustomName() + " | Slot: " + std::to_string(i));
     }
 
     return -1;
@@ -84,40 +85,34 @@ void AutoSpellBook::useSpell(int slot) {
     player->getSupplies()->mSelectedSlot = currentSlot;
 }
 
-void AutoSpellBook::onBaseTickEvent(BaseTickEvent& event)
-{
-    auto player = event.mActor;
-    if (!player) return;
-
+void AutoSpellBook::onBaseTickEvent(BaseTickEvent& event)  
+{  
+    auto player = event.mActor;  
+    if (!player) return;  
     mHealthSpellSlot = getHealthSpell();
-    mSpeedSpellSlot = getSpeedSpell();
-    mFireTrailSpellSlot = getFireTrailSpell();
 
-    if(mHealthSpellSlot != -1 && mUseHealthSpell && player->getHealth() < 12) {
-        if (mLastHealthSpellUseTime + (uint64_t)mHealthDelay > NOW) return;
-        useSpell(mHealthSpellSlot);
-        mLastHealthSpellUseTime = NOW;
+    return;
+    mHealthSpellSlot = getHealthSpell();  
+    mSpeedSpellSlot = getSpeedSpell();  
+    mFireTrailSpellSlot = getFireTrailSpell();  
 
-        if (mShowNotification.mValue) NotifyUtils::notify("Used Health Spell!", 3, Notification::Type::Info);
-    }
+    if (mHealthSpellSlot != -1 && mUseHealthSpell.mValue && player->getHealth() < 12) {  
+        if (mLastHealthSpellUseTime + (uint64_t)mHealthDelay > NOW) return;  
+        useSpell(mHealthSpellSlot);  
+        mLastHealthSpellUseTime = NOW;  
 
-    if(mSpeedSpellSlot != -1 && mUseSpeedSpell) {
-        auto speed = gFeatureManager->mModuleManager->getModule<Speed>();
-        if (!speed || !speed->mEnabled) return;
-        if (mLastSpeedSpellUseTime + (uint64_t)mSpeedDelay > NOW) return;
-        useSpell(mSpeedSpellSlot);
-        mLastSpeedSpellUseTime = NOW;
+        if (mShowNotification.mValue) NotifyUtils::notify("Used Health Spell!", 3, Notification::Type::Info);  
+    }  
 
-        if (mShowNotification.mValue) NotifyUtils::notify("Used Speed Spell!", 3, Notification::Type::Info);
-    }
+    if (mSpeedSpellSlot != -1 && mUseSpeedSpell.mValue) {  
+      //  auto speed = gFeatureManager->mModuleManager->getModule<Speed>();  
+     //   if (!speed || !speed->mEnabled) return;  
+        if (mLastSpeedSpellUseTime + (uint64_t)mSpeedDelay > NOW) return;  
+        useSpell(mSpeedSpellSlot);  
+        mLastSpeedSpellUseTime = NOW;  
 
-    if(mFireTrailSpellSlot != -1 && mUseFireTrailSpell) {
-        auto aura = gFeatureManager->mModuleManager->getModule<Aura>();
-        if (!aura || !aura->sHasTarget) return;
-        if (mLastFireTrailSpellUseTime + (uint64_t)mFireTrailDelay > NOW) return;
-        useSpell(mFireTrailSpellSlot);
-        mLastFireTrailSpellUseTime = NOW;
+        if (mShowNotification.mValue) NotifyUtils::notify("Used Speed Spell!", 3, Notification::Type::Info);  
+    }  
 
-        if (mShowNotification.mValue) NotifyUtils::notify("Used Fire Trail Spell!", 3, Notification::Type::Info);
-    }
-};
+
+}

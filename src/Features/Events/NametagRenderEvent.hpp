@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Event.hpp"
+#include <SDK/Minecraft/mce.hpp>
 
 class NametagRenderEvent : public Event {
 public:

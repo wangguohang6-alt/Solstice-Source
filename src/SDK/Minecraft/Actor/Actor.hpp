@@ -38,9 +38,9 @@
 
 class Actor {
 public:
-    unsigned char filler[0x408]; // ItemActor::ItemActor on bds line 35 ItemStack::ItemStack((ItemActor *)((char *)this + 1024));
+    unsigned char filler[0x3A8]; // ItemActor::ItemActor on bds line 35 ItemStack::ItemStack((ItemActor *)((char *)this + 1024));
 
-    CLASS_FIELD(uintptr_t**, vtable, 0x0)
+    CLASS_FIELD(uintptr_t**, vtable, 0x0);
     CLASS_FIELD(EntityContext, mContext, 0x8);
     CLASS_FIELD(std::string, mEntityIdentifier, OffsetProvider::Actor_mEntityIdentifier);
 
@@ -169,6 +169,7 @@ public:
     class Level* getLevel();
     class SerializedSkin* getSkin();
     void setPosition(glm::vec3 pos);
+    void setPos(float x, float y, float z);
     float distanceTo(Actor* actor);
     float distanceTo(const glm::vec3& pos);
     bool wasOnGround();
@@ -197,4 +198,4 @@ public:
     bool canSee(Actor* actor);
 };
 
-static_assert(sizeof(Actor) == 0x408, "Actor size is invalid");
+static_assert(sizeof(Actor) == 0x3A8, "Actor size is invalid");

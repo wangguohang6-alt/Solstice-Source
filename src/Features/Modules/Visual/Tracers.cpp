@@ -5,18 +5,35 @@
 #include "Tracers.hpp"
 
 #include <Features/Modules/Misc/Friends.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
+
 #include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/Options.hpp>
 
 void Tracers::onEnable()
 {
     gFeatureManager->mDispatcher->listen<RenderEvent, &Tracers::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &Tracers::onChengePerson>(this);
 }
 
 void Tracers::onDisable()
 {
     gFeatureManager->mDispatcher->deafen<RenderEvent, &Tracers::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &Tracers::onChengePerson>(this);
 }
+void Tracers::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+}
+
+
 // self pasting (everywhere)
 float GetDistanceBetweenPoints(const ImVec2& point1, const ImVec2& point2) {
     float dx = point1.x - point2.x;
@@ -96,7 +113,7 @@ void Tracers::onRenderEvent(RenderEvent& event)
 
     for (auto actor : actors)
     {
-        if (actor == localPlayer && ClientInstance::get()->getOptions()->mThirdPerson->value == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
+        if (actor == localPlayer && mCurrentPerson == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
         if (actor == localPlayer && !mRenderLocal.mValue) continue;
         auto shapeComp = actor->getAABBShapeComponent();
         if (!shapeComp) continue;

@@ -8,24 +8,42 @@
 #include <SDK/OffsetProvider.hpp>
 #include <SDK/SigManager.hpp>
 #include <Utils/MemUtils.hpp>
+#include <SDK/Minecraft/ptr/WeakPtr.hpp>
 
 #include "CompoundTag.hpp"
+
+
 
 
 class ItemStackBase {
 public:
     uintptr_t** mVfTable;
-    //WeakPtr<class Item> mItem;
-    class Item** mItem;
-    CompoundTag* mCompoundTag;
-    class Block* mBlock;
+    WeakPtr<class Item> mItem;
+    //class Item** mItem;
+   
+    CompoundTag* mCompoundTag; 
+    const class Block* mBlock;
     short mAuxValue;
-    int8_t mCount;
+    unsigned char mCount;
     bool valid;
-    PAD(0x60);
+    bool mShowPickUp;
+    bool mWasPickedUp;
+    std::chrono::steady_clock::time_point mPickupTime;
+    std::vector<BlockLegacy const*>     mCanPlaceOn;
+    uint64_t                                  mCanPlaceOnHash;
+    std::vector<BlockLegacy const*>     mCanDestroy;
+    uint64_t                                  mCanDestroyHash;
+    int                                  mBlockingTick;
+   // std::unique_ptr<ItemInstance>       mChargedItem;
+
+    //PAD(0x60);
 
     Item* getItem() {
-        return *mItem;
+        if (this && mItem) {
+            return mItem.get();
+
+        }
+		else return nullptr;
     }
 };
 
@@ -73,8 +91,9 @@ enum class Enchant : int {
 class ItemStack : public ItemStackBase
 {
 public:
-    uint8_t mStackNetId; //0x0088
-    PAD(0x8);
+    //uint8_t mStackNetId; //0x0088
+    //PAD(0x8);
+    PAD(24);
 
     void reinit(Item* item, int count, int itemData) {
         mVfTable = reinterpret_cast<uintptr_t**>(SigManager::ItemStack_vTable);
@@ -137,8 +156,6 @@ public:
         name = StringUtils::replaceAll(name, "_", " ");
         return name;
     }
-
-    static ItemStack fromDescriptor(class NetworkItemStackDescriptor const& desc);
 };
 
-static_assert(sizeof(ItemStack) == 0x98, "ItemStack size invalid");
+//static_assert(sizeof(ItemStack) == 0x98, "ItemStack size invalid");

@@ -10,6 +10,7 @@
 #include <SDK/Minecraft/MinecraftSim.hpp>
 #include <SDK/Minecraft/Network/LoopbackPacketSender.hpp>
 #include <SDK/Minecraft/Network/MinecraftPackets.hpp>
+#include <SDK/Minecraft/Network/Packets/MovePlayerPacket.hpp>
 #include <SDK/Minecraft/World/Level.hpp>
 #include <Utils/MiscUtils/RenderUtils.hpp>
 #include "SerializedSkin.hpp"
@@ -202,6 +203,7 @@ GameMode* Actor::getGameMode()
     return hat::member_at<GameMode*>(this, OffsetProvider::Actor_mGameMode);
 }
 
+
 DebugCameraComponent* Actor::getDebugCameraComponent()
 {
     return mContext.try_get<DebugCameraComponent>();
@@ -245,9 +247,9 @@ Level* Actor::getLevel()
     return hat::member_at<Level*>(this, OffsetProvider::Actor_mLevel);
 }
 
-SerializedSkin* Actor::getSkin()
+SerializedSkin* Actor::getSkin()//only work 1.21.92
 {
-    return hat::member_at<SerializedSkin*>(this, OffsetProvider::Actor_mSerializedSkin);
+    return &(*reinterpret_cast<SerializedSkinBase**>(reinterpret_cast<uintptr_t>(this) + OffsetProvider::Actor_mSerializedSkin))->Impl->Object;
 }
 
 int64_t Actor::getRuntimeID()
@@ -258,8 +260,26 @@ int64_t Actor::getRuntimeID()
 
 void Actor::setPosition(glm::vec3 pos)
 {
-    static uintptr_t func = SigManager::Actor_setPosition;
-    MemUtils::callFastcall<void, void*, glm::vec3*>(func, this, &pos);
+    // stupid fix
+    /*static uintptr_t func = SigManager::Actor_setPosition;
+    MemUtils::callFastcall<void, void*, glm::vec3*>(func, this, &pos);*/
+    auto mpp = MinecraftPackets::createPacket<MovePlayerPacket>();
+    mpp->mPlayerID = this->getRuntimeID();
+    auto rotComp = this->getActorRotationComponent();
+    mpp->mRot = { rotComp->mPitch, rotComp->mYaw };
+    mpp->mYHeadRot = this->getActorHeadRotationComponent()->mHeadRot;
+    mpp->mPos = pos;
+    mpp->mResetPosition = PositionMode::Teleport;
+    mpp->mRidingID = -1;
+    mpp->mCause = TeleportationCause::Unknown;
+    mpp->mSourceEntityType = ActorType::Player;
+    mpp->mTick = 0;
+    PacketUtils::sendToSelf(mpp);
+}
+
+void Actor::setPos(float x, float y, float z)
+{
+    setPosition({ x, y, z });
 }
 
 float Actor::distanceTo(Actor* actor)
@@ -374,7 +394,7 @@ float Actor::getMaxHealth()
 {
     auto health = getAttribute(Health);
     if (!health) return 0;
-    return health->mMaximumValue;
+    return health->mCurrentMaxValue;
 }
 
 float Actor::getHealth()
@@ -395,7 +415,7 @@ float Actor::getMaxAbsorption()
 {
     auto absorption = getAttribute(Absorption);
     if (!absorption) return 0;
-    return absorption->mMaximumValue;
+    return absorption->mCurrentMaxValue;
 }
 
 AttributeInstance* Actor::getAttribute(AttributeId id)
@@ -410,13 +430,7 @@ AttributeInstance* Actor::getAttribute(int id)
         spdlog::critical("Actor::getAttribute: No AttributesComponent found");
         return nullptr;
     }
-    // Directly access the map
-    auto& map = component->mBaseAttributeMap.mAttributes;
-    auto it = map.find(id);
-    if (it != map.end()) {
-        return &it->second;
-    }
-    return nullptr;
+    return component->mBaseAttributeMap.getInstance(id);
 }
 
 bool Actor::isOnFire()

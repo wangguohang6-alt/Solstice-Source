@@ -40,7 +40,7 @@ int ItemUtils::getItemValue(ItemStack* item) {
 
     // If the item is armor, add the getArmorValue function
     if (item->getItem()->getItemType() >= SItemType::Helmet && item->getItem()->getItemType() <= SItemType::Boots)
-        value += item->getItem()->mProtection;
+        value += item->getItem()->getArmorTier();
 
     // If the item is a weapon, add the getItemTier function
     if (item->getItem()->getItemType() == SItemType::Sword || item->getItem()->getItemType() == SItemType::Pickaxe || item->getItem()->getItemType() == SItemType::Axe || item->getItem()->getItemType() == SItemType::Shovel)
@@ -158,7 +158,12 @@ int ItemUtils::getAllPlaceables(bool hotbarOnly)
 
             for (const auto& blacklistedBlock : blacklistedBlocks)
             {
-                if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                /*if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }*/
+                if (StringUtils::containsIgnoreCase(stack->getItem()->mName, blacklistedBlock))
                 {
                     skip = true;
                     break;
@@ -193,7 +198,12 @@ int ItemUtils::getFirstPlaceable(bool hotbarOnly)
 
             for (const auto& blacklistedBlock : blacklistedBlocks)
             {
-                if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                /*if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }*/
+                if (StringUtils::containsIgnoreCase(stack->getItem()->mName, blacklistedBlock))
                 {
                     skip = true;
                     break;
@@ -230,7 +240,12 @@ int ItemUtils::getPlaceableItemOnBlock(glm::vec3 blockPos, bool hotbarOnly, bool
 
             for (const auto& blacklistedBlock : blacklistedBlocks)
             {
-                if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                /*if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }*/
+                if (StringUtils::containsIgnoreCase(stack->getItem()->mName, blacklistedBlock))
                 {
                     skip = true;
                     break;
@@ -238,7 +253,7 @@ int ItemUtils::getPlaceableItemOnBlock(glm::vec3 blockPos, bool hotbarOnly, bool
             }
             if (skip) continue;
 
-            Block* block = stack->mBlock;
+            const Block* block = stack->mBlock;
             if (!block->mLegacy->mayPlaceOn(blockPos)) continue;
 
             if (!prioHighest)
@@ -270,7 +285,8 @@ int ItemUtils::getPlaceableItemOnBlock(glm::vec3 blockPos, bool hotbarOnly, bool
 bool ItemUtils::isUsableBlock(ItemStack* stack)
 {
     if (!stack->mItem) return false;
-    return stack->mBlock && !StringUtils::containsAnyIgnoreCase(stack->mBlock->toLegacy()->mName, std::vector<std::string>(blacklistedBlocks.begin(), blacklistedBlocks.end()));
+    //return stack->mBlock && !StringUtils::containsAnyIgnoreCase(stack->mBlock->toLegacy()->mName, std::vector<std::string>(blacklistedBlocks.begin(), blacklistedBlocks.end()));
+    return stack->mBlock && !StringUtils::containsAnyIgnoreCase(stack->getItem()->mName, std::vector<std::string>(blacklistedBlocks.begin(), blacklistedBlocks.end()));
 }
 
 int ItemUtils::getSwiftnessSpellbook(bool hotbarOnly)
@@ -316,6 +332,70 @@ int ItemUtils::getBoombox(bool hotbarOnly, bool tnt)
         {
             slot = i;
             break;
+        }
+    }
+
+    return slot;
+}
+
+int ItemUtils::getNonSolidBlock(bool hotbarOnly)
+{
+    auto player = ClientInstance::get()->getLocalPlayer();
+    if (!player) return -1;
+
+    int slot = -1;
+
+    for (int i = 0; i < 36; i++)
+    {
+        ItemStack* stack = player->getSupplies()->getContainer()->getItem(i);
+        if (!stack->mItem) continue;
+        if (hotbarOnly && i > 8) break;
+        if (stack->mBlock && !stack->mBlock->mLegacy->mSolid) {
+            slot = i;
+            break;
+        }
+    }
+
+    return slot;
+}
+
+int ItemUtils::getBlocks(bool hotbarOnly, bool crumblingCobblestone)
+{
+    auto player = ClientInstance::get()->getLocalPlayer();
+    if (!player) return -1;
+
+    int slot = -1;
+
+    for (int i = 0; i < 36; i++)
+    {
+        ItemStack* stack = player->getSupplies()->getContainer()->getItem(i);
+        if (!stack->mItem) continue;
+        if (hotbarOnly && i > 8) break;
+        if (stack->mBlock) {
+            // If the string contains any of the blacklisted blocks, skip it (compare using StringUtils::containsIgnoreCase
+            bool skip = false;
+
+            for (const auto& blacklistedBlock : blacklistedBlocks)
+            {
+                /*if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }*/
+                if (StringUtils::containsIgnoreCase(stack->getItem()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) continue;
+
+            bool isCrumblingCobblestone = StringUtils::containsIgnoreCase(stack->getItem()->mName, "crumbling");
+            if ((crumblingCobblestone && isCrumblingCobblestone) || (!crumblingCobblestone && !isCrumblingCobblestone))
+            {
+                slot = i;
+                break;
+            }
         }
     }
 
@@ -373,7 +453,12 @@ int ItemUtils::getHardestBlock(int slot, bool hotbarOnly)
 
             for (const auto& blacklistedBlock : blacklistedBlocks)
             {
-                if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                /*if (StringUtils::containsIgnoreCase(stack->mBlock->toLegacy()->mName, blacklistedBlock))
+                {
+                    skip = true;
+                    break;
+                }*/
+                if (StringUtils::containsIgnoreCase(stack->getItem()->mName, blacklistedBlock))
                 {
                     skip = true;
                     break;
@@ -437,7 +522,7 @@ float ItemUtils::getDestroySpeed(const int slot, const Block* block, const float
 bool ItemUtils::isFireSword(ItemStack* stack)
 {
     if (!stack->mItem) return false;
-    return StringUtils::containsAnyIgnoreCase(stack->getCustomName(), {"§6Sword of §eEmbers", "§cFire Sword"});
+    return StringUtils::containsIgnoreCase(stack->getItem()->mName, "golden_sword") && stack->getEnchantValue(Enchant::FLAME) > 0;
 }
 
 int ItemUtils::getFireSword(bool hotbarOnly)

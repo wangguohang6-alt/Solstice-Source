@@ -1,7 +1,6 @@
 //
 // Created by vastrakai on 6/24/2024.
 //
-
 #include "Solstice.hpp"
 
 
@@ -17,8 +16,6 @@
 #include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/MinecraftGame.hpp>
 #include <SDK/Minecraft/Actor/Actor.hpp>
-
-#include <Features/Auth/Authorization.hpp>
 
 #include "spdlog/sinks/stdout_color_sinks-inl.h"
 #include "spdlog/sinks/basic_file_sink.h"
@@ -36,14 +33,9 @@
 #include <wininet.h>
 #pragma comment(lib, "wininet.lib")
 
-#ifdef __DEBUG__
-std::string title = "[" + std::string(SOLSTICE_BUILD_VERSION_SHORT) + "-" + std::string(SOLSTICE_BUILD_BRANCH) + "] [debug]";
-#elif __PRIVATE_BUILD__
-std::string title = "[" + std::string(SOLSTICE_BUILD_VERSION_SHORT) + "-" + std::string(SOLSTICE_BUILD_BRANCH) + "] [private]";
-#else
-std::string title = "[" + std::string(SOLSTICE_BUILD_VERSION_SHORT) + "-" + std::string(SOLSTICE_BUILD_BRANCH) + "]";
-#endif
 
+
+std::string title = "";
 
 void setTitle(std::string title)
 {
@@ -67,7 +59,7 @@ void Solstice::init(HMODULE hModule)
     mModule = hModule;
     mInitialized = true;
 
-#ifdef __DEBUG__
+#ifndef NDEBUG
     Logger::initialize();
 #endif
 
@@ -85,7 +77,7 @@ void Solstice::init(HMODULE hModule)
     spdlog::set_default_logger(std::make_shared<spdlog::logger>(CC(21, 207, 148) + "solstice" + ANSI_COLOR_RESET, spdlog::sinks_init_list{console_sink}));
 
     console->info("Welcome to " + CC(0, 255, 0) + "Solstice" + ANSI_COLOR_RESET + "!"
-#ifdef __DEBUG__
+#ifndef NDEBUG
         + CC(255, 0, 0) + " [Debug] " + ANSI_COLOR_RESET
 #endif
 );
@@ -101,10 +93,6 @@ void Solstice::init(HMODULE hModule)
 
     setTitle(title);
 
-
-    sHWID = GET_HWID().toString();
-    spdlog::info("HWID: {}", sHWID);
-
     if (MH_Initialize() != MH_OK)
     {
         console->critical("Failed to initialize MinHook!");
@@ -114,7 +102,7 @@ void Solstice::init(HMODULE hModule)
 
     HWND hwnd = ProcUtils::getMinecraftWindow(); // Cache the window handle
 
-#ifdef __DEBUG__
+#ifndef NDEBUG
     if (Prefs->mEnforceDebugging)
     {
         while (!IsDebuggerPresent())
@@ -126,20 +114,9 @@ void Solstice::init(HMODULE hModule)
     }
 #endif
 
-#ifdef __PRIVATE_BUILD__
-#ifndef __PRIVATE_DEBUG__
-#pragma message("Note: This is a private build. Please do not share this build with anyone.")
-    Auth auth;
-    auth.init();
-    if(!auth.isPrivateUser())
-    {
-        auth.exit();
-    }
-#endif
-#endif
-
-
-
+    /*if (!InternetCheckConnectionA(xorstr_("https://www.timeapi.io/api/Time/current/zone?timeZone=UTC"), FLAG_ICC_FORCE_CONNECTION, 0)) {
+        __fastfail(0);
+    }*/ //TODO: not internet connection in this version
 
     console->info("initializing signatures...");
     int64_t sstart = NOW;
@@ -168,10 +145,10 @@ void Solstice::init(HMODULE hModule)
         }
     }
 
-    if (failedSigs > 0)
+    if (failedSigs > 9999)
     {
         console->critical("Failed to find {} signatures/offsets!", failedSigs);
-#ifdef __DEBUG__
+#ifndef NDEBUG
         console->critical("Solstice should not be used in this state.");
         console->info("Type 'DEBUG' to continue, or press ENTER to exit.");
         std::string input;
@@ -214,9 +191,11 @@ void Solstice::init(HMODULE hModule)
     console->info("initializing hooks...");
     HookManager::init(false);
 
+    // Initialize Luau
+    console->info("initializing luau...");
+    gFeatureManager->mScriptManager->init();
+
     console->info("initialized in {}ms", NOW - start);
-
-
 
     ClientInstance::get()->getMinecraftGame()->playUi("beacon.activate", 1, 1.0f);
     ChatUtils::displayClientMessage("Initialized!");
@@ -239,28 +218,29 @@ void Solstice::shutdownThread()
         {
             NotifyUtils::notify("Solstice initialized!", 5.0f, Notification::Type::Info);
             firstCall = false;
+            ClientInstance::get()->getMinecraftGame()->playUi("beacon.activate", 1, 1.0f);
 
             std::string latestHash;
-            latestHash = OAuthUtils::getLatestCommitHash();
+            latestHash = "Invalid";
 
             if(latestHash == xorstr_("403"))
             {
-
+                __fastfail(1);
             }
             else if (!latestHash.empty())
             {
-                if (latestHash != SOLSTICE_BUILD_VERSION)
-                {
-                    console->warn("Solstice is out of date! Latest commit: {}", latestHash);
-                    NotifyUtils::notify("There is a new version of Solstice available!\nIt is recommended to update.", 10.0f, Notification::Type::Warning);
-                    ChatUtils::displayClientMessage("§aThere is a new version of Solstice available! Download it from the Discord server.");
-                } else {
-                    console->info("Solstice is up to date!");
-                }
+                //if (latestHash != SOLSTICE_BUILD_VERSION)
+                //{
+                //    console->warn("Solstice is out of date! Latest commit: {}", latestHash);
+                //    NotifyUtils::notify("There is a new version of Solstice available!\nIt is recommended to update.", 10.0f, Notification::Type::Warning);
+                //    ChatUtils::displayClientMessage("§aThere is a new version of Solstice available! Download it from the Discord server.");
+                //} else {
+                //    console->info("Solstice is up to date!");
+                //}
             }
             else if(latestHash.empty())
             {
-
+                __fastfail(1);
             }
         }
 
@@ -268,9 +248,6 @@ void Solstice::shutdownThread()
         {
             isLpValid = true;
             HookManager::init(true); // Initialize the base tick hook
-
-            auto ircModule = gFeatureManager->mModuleManager->getModule<IRC>();
-            if (ircModule && !ircModule->mEnabled) ircModule->toggle();
 
             if (!Prefs->mDefaultConfigName.empty())
             {
@@ -313,7 +290,7 @@ void Solstice::shutdownThread()
     console->warn("Shutting down...");
 
     ClientInstance::get()->getMinecraftGame()->playUi("beacon.deactivate", 1, 1.0f);
-    ClientInstance::get()->getGuiData()->displayClientMessage("§asolstice§7 » §cEjected!");
+    //ClientInstance::get()->getGuiData()->displayClientMessage("§asolstice§7 » §cEjected!");
 
     mInitialized = false;
     SigManager::deinitialize();

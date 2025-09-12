@@ -4,6 +4,8 @@
 
 #include "PartySpammer.hpp"
 
+#include <Features/Modules/Combat/Aura.hpp>
+
 #include <Features/Events/BaseTickEvent.hpp>
 #include <Features/Events/PacketInEvent.hpp>
 #include <Features/Events/PacketOutEvent.hpp>
@@ -167,6 +169,19 @@ void PartySpammer::onBaseTickEvent(BaseTickEvent& event)
             mInvited = false;
         }
     }
+    else if (mMode.mValue == Mode::Aura) {
+        if (mLastCommandRequestPacketSent + 1000 > NOW) return;
+
+        if (mInvited) {
+            CommandUtils::executeCommand("/p disband");
+            mInvited = false;
+        }
+        else if (Aura::sHasTarget && Aura::sTarget && Aura::sTarget->getActorTypeComponent() && Aura::sTarget->isPlayer()) {
+            std::string absoluteName = "\"" + Aura::sTarget->getRawName() + "\"";
+            CommandUtils::executeCommand("/p invite " + absoluteName);
+            mInvited = true;
+        }
+    }
 }
 
 void PartySpammer::onPacketInEvent(PacketInEvent& event)
@@ -206,6 +221,22 @@ void PartySpammer::onPacketInEvent(PacketInEvent& event)
             }
         }
     }
+    else if (mMode.mValue == Mode::Aura) {
+        if (event.mPacket->getId() == PacketID::Text) {
+            auto textPacket = event.getPacket<TextPacket>();
+            if (mHideInviteMessage.mValue) {
+                // Invite messages
+                if (StringUtils::containsIgnoreCase(textPacket->mMessage, "Invited") && StringUtils::containsIgnoreCase(textPacket->mMessage, "to your current party. They have 1 minute to accept.")) {
+                    event.mCancelled = true;
+                }
+
+                // Disband messages
+                if (StringUtils::equalsIgnoreCase(textPacket->mMessage, "Your party has been disbanded. You are no longer in a party.")) {
+                    event.mCancelled = true;
+                }
+            }
+        }
+    }
 }
 
 void PartySpammer::onPacketOutEvent(PacketOutEvent& event)
@@ -219,7 +250,7 @@ void PartySpammer::onPacketOutEvent(PacketOutEvent& event)
         spdlog::info("Form ID {} was closed [{}] [{}]", packet->mFormId, packet->mFormCancelReason.value_or(ModalFormCancelReason::UserClosed) == ModalFormCancelReason::UserClosed ? "UserClosed" : "UserBusy",
             packet->mJSONResponse.has_value() ? packet->mJSONResponse.value().toString() : "No response");
     }
-    if (event.mPacket->getId() == PacketID::CommandRequest && mMode.mValue == Mode::Command) {
+    if (event.mPacket->getId() == PacketID::CommandRequest && (mMode.mValue == Mode::Command || mMode.mValue == Mode::Aura)) {
         mLastCommandRequestPacketSent = NOW;
     }
 }

@@ -35,9 +35,9 @@ class BlockLegacy {
 public:
     CLASS_FIELD(uintptr_t**, mVfTable, 0x0);
     CLASS_FIELD(std::string, mTileName, 0x28);
-    CLASS_FIELD(std::string, mName, 0xA0);
-    CLASS_FIELD(Material*, mMaterial, 0x128);
-    CLASS_FIELD(bool, mSolid, 0x164);
+    CLASS_FIELD(std::string, mName, 0xA0); 
+    CLASS_FIELD(Material*, mMaterial, 0x160);
+    CLASS_FIELD(bool, mSolid, 0x19C);
 
     uint16_t getBlockId();
     bool mayPlaceOn(glm::ivec3 pos);

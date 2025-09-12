@@ -5,6 +5,8 @@
 #include "Nametags.hpp"
 
 #include <Features/Events/NametagRenderEvent.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
+
 #include <Features/IRC/IrcClient.hpp>
 #include <Features/Modules/Misc/Friends.hpp>
 #include <SDK/Minecraft/ClientInstance.hpp>
@@ -19,16 +21,33 @@ void Nametags::onEnable()
     gFeatureManager->mDispatcher->listen<RenderEvent, &Nametags::onRenderEvent>(this);
     gFeatureManager->mDispatcher->listen<BaseTickEvent, &Nametags::onBaseTickEvent>(this);
     gFeatureManager->mDispatcher->listen<NametagRenderEvent, &Nametags::onNametagRenderEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &Nametags::onChengePerson>(this);
 }
 void Nametags::onDisable()
 {
     gFeatureManager->mDispatcher->deafen<RenderEvent, &Nametags::onRenderEvent>(this);
     gFeatureManager->mDispatcher->deafen<BaseTickEvent, &Nametags::onBaseTickEvent>(this);
     gFeatureManager->mDispatcher->deafen<NametagRenderEvent, &Nametags::onNametagRenderEvent>(this);
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &Nametags::onChengePerson>(this);
 
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player) return;
 }
+
+
+void Nametags::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+}
+
+
 std::mutex bpsMutex;
 std::unordered_map<Actor*, float> bpsMap;
 std::unordered_map<Actor*, std::map<int64_t, float>> bpsHistory;
@@ -110,7 +129,7 @@ void Nametags::onRenderEvent(RenderEvent& event)
     for (auto actor : actors)
     {
         if (!actor->isPlayer()) continue;
-        if (actor == localPlayer && ci->getOptions()->mThirdPerson->value == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
+        if (actor == localPlayer && mCurrentPerson == 0 && !localPlayer->getFlag<RenderCameraComponent>()) continue;
         if (actor == localPlayer && !mRenderLocal.mValue) continue;
         auto shape = actor->getAABBShapeComponent();
         if (!shape) continue;
@@ -217,7 +236,7 @@ void Nametags::onNametagRenderEvent(NametagRenderEvent& event)
 
     if (ActorUtils::isBot(actor)) return;
     if (!actor->isPlayer()) return;
-    if (actor == localPlayer && ci->getOptions()->mThirdPerson->value == 0 && !localPlayer->getFlag<RenderCameraComponent>()) return;
+    if (actor == localPlayer && mCurrentPerson == 0 && !localPlayer->getFlag<RenderCameraComponent>()) return;
     if (actor == localPlayer && !mRenderLocal.mValue) return;
     auto shape = actor->getAABBShapeComponent();
     if (!shape) return;

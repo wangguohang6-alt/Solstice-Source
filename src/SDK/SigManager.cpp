@@ -51,7 +51,7 @@ void SigManager::initialize()
 
     }
 
-#ifndef __DEBUG__
+#ifndef NDEBUG
     auto mc = hat::process::get_process_module().address();
     auto mcSize = hat::process::get_process_module().get_module_data().size();
 

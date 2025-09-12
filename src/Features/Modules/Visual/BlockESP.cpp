@@ -40,6 +40,7 @@ constexpr int CHEST = 54;
 constexpr int ENDER_CHEST = 130;
 constexpr int TRAPPED_CHEST = 146;
 constexpr int BARREL = 458;
+constexpr int MONTSER_SPAWNER = 52;
 
 std::unordered_map<int, ImColor> blockColors = {
     { 73, ImColor(1.f, 0.f, 0.f, 1.f) },
@@ -64,6 +65,7 @@ std::unordered_map<int, ImColor> blockColors = {
     { 130, ImColor(0.5f, 0.f, 0.5f, 1.f) },
     { 54, ImColor(255, 165, 0) },
     { 146, ImColor(255, 165, 0) },
+    { 52, ImColor(25, 25, 112) },
     { 458, ImColor(255, 165, 0) }
 };
 
@@ -287,6 +289,11 @@ std::vector<int> BlockESP::getEnabledBlocks()
         enabledBlocks.push_back(ENDER_CHEST);
         enabledBlocks.push_back(TRAPPED_CHEST);
         enabledBlocks.push_back(BARREL);
+    }
+
+    if (mSpawners.mValue)
+    {
+        enabledBlocks.push_back(MONTSER_SPAWNER);
     }
 
     return enabledBlocks;

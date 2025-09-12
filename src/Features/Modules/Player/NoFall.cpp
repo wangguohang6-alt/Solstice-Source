@@ -8,6 +8,7 @@
 #include <SDK/Minecraft/Actor/Components/FlagComponent.hpp>
 #include <SDK/Minecraft/Network/Packets/MovePlayerPacket.hpp>
 #include <SDK/Minecraft/Network/Packets/PlayerAuthInputPacket.hpp>
+#include <SDK/Minecraft/ClientInstance.hpp>
 
 void NoFall::onEnable()
 {

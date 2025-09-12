@@ -73,6 +73,7 @@ void DeviceSpoof::onDisable()
 
 void DeviceSpoof::onConnectionRequestEvent(ConnectionRequestEvent& event)
 {
+    /*
     auto editionFaker = gFeatureManager->mModuleManager->getModule<EditionFaker>();
     std::string deviceId;
 
@@ -88,7 +89,7 @@ void DeviceSpoof::onConnectionRequestEvent(ConnectionRequestEvent& event)
     *event.mSkinId = "Custom" + deviceId;
     *event.mSelfSignedId = StringUtils::generateUUID(7);
 
-    spoofMboard();
+    spoofMboard();*/
 }
 
 /* // Example of a connection request json

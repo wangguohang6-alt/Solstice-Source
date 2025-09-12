@@ -4,7 +4,9 @@
 
 #include "Desync.hpp"
 
+#include <Features/Events/PacketOutEvent.hpp>
 #include <Hook/Hooks/NetworkHooks/PacketSendHook.hpp>
+#include <SDK/Minecraft/Network/MinecraftPackets.hpp>
 #include <SDK/Minecraft/Network/Packets/PlayerAuthInputPacket.hpp>
 #include <Features/Events/PacketOutEvent.hpp>
 #include <SDK/Minecraft/Network/MinecraftPackets.hpp>

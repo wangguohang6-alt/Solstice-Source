@@ -4,7 +4,16 @@
 
 #include "CostumeSpammer.hpp"
 
+#include <Features/Events/BaseTickEvent.hpp>
+#include <Features/Events/PacketInEvent.hpp>
+#include <Features/Events/PacketOutEvent.hpp>
+#include <SDK/Minecraft/ClientInstance.hpp>
+#include <SDK/Minecraft/Inventory/PlayerInventory.hpp>
+#include <SDK/Minecraft/Network/LoopbackPacketSender.hpp>
+#include <SDK/Minecraft/Network/MinecraftPackets.hpp>
 #include <SDK/Minecraft/Network/Packets/CommandRequestPacket.hpp>
+#include <SDK/Minecraft/Network/Packets/ModalFormResponsePacket.hpp>
+#include <SDK/Minecraft/Network/Packets/TextPacket.hpp>
 
 void CostumeSpammer::onEnable()
 {

@@ -167,7 +167,7 @@ std::unique_ptr<SkinCapePair> getRandSkinCapePair()
 // I hate you Tozic.
 void SkinBlinker::onBaseTickEvent(BaseTickEvent& event)
 {
-    if (mLastSkinChange + mDelay.mValue * 1000 > NOW)
+    if (mLastSkinChange + (mDelay.mValue * 1000) > NOW)
         return;
     static std::unique_ptr<SkinCapePair> skinCapePair = nullptr;
 
@@ -182,6 +182,9 @@ void SkinBlinker::onBaseTickEvent(BaseTickEvent& event)
     auto player = event.mActor;
 
     auto currentSkin = player->getSkin();
+    mId = currentSkin->mId;
+    mPlayFabId = currentSkin->mPlayFabId;
+    mFullId = currentSkin->mFullId;
 
     auto skinpacket = MinecraftPackets::createPacket<PlayerSkinPacket>();
 

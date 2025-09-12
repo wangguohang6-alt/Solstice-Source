@@ -11,6 +11,8 @@
 #include <Features/Events/PacketInEvent.hpp>
 #include <Features/Events/PacketOutEvent.hpp>
 #include <Features/Events/RenderEvent.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
+
 #include <Features/Modules/Misc/Friends.hpp>
 #include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/Options.hpp>
@@ -113,10 +115,11 @@ void Aura::onEnable()
     gFeatureManager->mDispatcher->listen<PacketOutEvent, &Aura::onPacketOutEvent>(this);
     gFeatureManager->mDispatcher->listen<PacketInEvent, &Aura::onPacketInEvent>(this);
     gFeatureManager->mDispatcher->listen<RenderEvent, &Aura::onRenderEvent>(this);
+    gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &Aura::onChengePerson>(this);
     gFeatureManager->mDispatcher->listen<BobHurtEvent, &Aura::onBobHurtEvent, nes::event_priority::FIRST>(this);
     gFeatureManager->mDispatcher->listen<BoneRenderEvent, &Aura::onBoneRenderEvent, nes::event_priority::FIRST>(this);
 
-    if (mThirdPerson.mValue && !mThirdPersonOnlyOnAttack.mValue) ClientInstance::get()->getOptions()->mThirdPerson->value = 1;
+    if (mThirdPerson.mValue && !mThirdPersonOnlyOnAttack.mValue) mSetPerson = 1;
 }
 
 bool chargingBow = false;
@@ -132,9 +135,23 @@ void Aura::onDisable()
     sTarget = nullptr;
     mRotating = false;
 
-    if (mThirdPerson.mValue && !mThirdPersonOnlyOnAttack.mValue) ClientInstance::get()->getOptions()->mThirdPerson->value = 0;
+    if (mThirdPerson.mValue && !mThirdPersonOnlyOnAttack.mValue) mSetPerson = 0;
+    gFeatureManager->mDispatcher->deafen<ThirdPersonEvent, &Aura::onChengePerson>(this);
+
 }
 
+
+void Aura::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+}
 void Aura::rotate(Actor* target)
 {
     if (mRotateMode.mValue == RotateMode::None) return;
@@ -164,6 +181,7 @@ void Aura::shootBow(Actor* target)
         if (!item->mItem) continue;
         if (item->getItem()->mName.contains("bow"))
         {
+            if (mHotbarOnly.mValue && i > 8) continue;
             bowSlot = i;
         }
         if (item->getItem()->mName.contains("arrow"))
@@ -172,8 +190,6 @@ void Aura::shootBow(Actor* target)
         }
         if (bowSlot != -1 && arrowSlot != -1) break;
     }
-
-    if (mHotbarOnly.mValue && bowSlot > 8) return;
 
     if (bowSlot == -1 || arrowSlot == -1) return;
 
@@ -491,7 +507,7 @@ void Aura::onBaseTickEvent(BaseTickEvent& event)
             {
                 spoofed = true;
                 auto pkt = PacketUtils::createMobEquipmentPacket(bestWeapon);
-                PacketUtils::queueSend(pkt, false);
+                PacketUtils::queueSend(pkt, true);
             }
 #endif
 
@@ -517,7 +533,7 @@ void Aura::onBaseTickEvent(BaseTickEvent& event)
             if (mFireSwordSpoof.mValue && shouldUseFire)
             {
                 auto pkt = PacketUtils::createMobEquipmentPacket(bestWeapon);
-                ClientInstance::get()->getPacketSender()->send(pkt.get());
+                ClientInstance::get()->getPacketSender()->sendToServer(pkt.get());
                 spoofed = true;
             }
 #endif
@@ -546,13 +562,13 @@ void Aura::onBaseTickEvent(BaseTickEvent& event)
 
     if (mThirdPerson.mValue && mThirdPersonOnlyOnAttack.mValue && sHasTarget) {
         if (!mIsThirdPerson) {
-            ClientInstance::get()->getOptions()->mThirdPerson->value = 1;
+            mSetPerson = 1;
             mIsThirdPerson = true;
         }
     }
     else if (mThirdPerson.mValue && mThirdPersonOnlyOnAttack.mValue && !sHasTarget) {
         if (mIsThirdPerson) {
-            ClientInstance::get()->getOptions()->mThirdPerson->value = 0;
+            mSetPerson = 0;
             mIsThirdPerson = false;
         }
     }
@@ -570,12 +586,14 @@ void Aura::onPacketOutEvent(PacketOutEvent& event)
         glm::vec2 rots = MathUtils::getRots(*player->getPos(), mTargetedAABB);
         pkt->mRot = rots;
         pkt->mYHeadRot = rots.y;
+        if (mHeadYaw.mValue) pkt->mYHeadRot += 90.0f;
         if (mRotateMode.mValue == RotateMode::Flick) mRotating = false;
     } else if (event.mPacket->getId() == PacketID::MovePlayer) {
         auto pkt = event.getPacket<MovePlayerPacket>();
         glm::vec2 rots = MathUtils::getRots(*player->getPos(), mTargetedAABB);
         pkt->mRot = rots;
         pkt->mYHeadRot = rots.y;
+        if (mHeadYaw.mValue) pkt->mYHeadRot += 90.0f;
     } else if (event.mPacket->getId() == PacketID::Animate)
     {
         mLastSwing = NOW;
@@ -673,12 +691,20 @@ Actor* Aura::findObstructingActor(Actor* player, Actor* target)
             auto hitbox = *actor->getAABBShapeComponent();
             actorHitboxes[actor] = hitbox;
 
+            if ((hitbox.mWidth != 0.86f || hitbox.mHeight != 2.32f) && actor->mEntityIdentifier == "hivecommon:shadow")
+            {
+                continue;
+            }
+
             if (MathUtils::rayIntersectsAABB(currentRayPos, rayEnd, hitbox.mMin, hitbox.mMax))
             {
                 if (mDebug.mValue)
                 {
                     spdlog::info("Found obstructing actor: {}", actor->mEntityIdentifier);
-                    ChatUtils::displayClientMessage("Attacking obstructing actor: " + actor->mEntityIdentifier);
+                    float hbWidth = hitbox.mWidth;
+                    float hbHeight = hitbox.mHeight;
+                    float distFromPlayer = actor->distanceTo(player);
+                    ChatUtils::displayClientMessage("Attacking obstructing actor: " + actor->mEntityIdentifier + " | Width: " + std::to_string(hbWidth) + " | Height: " + std::to_string(hbHeight) + " | Distance: " + std::to_string(distFromPlayer));
                 }
                 target = actor;
                 break;

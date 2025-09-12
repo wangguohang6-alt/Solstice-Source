@@ -10,6 +10,8 @@
 #include <Features/Events/PacketOutEvent.hpp>
 #include <Features/Events/DrawImageEvent.hpp>
 #include <Features/Events/PreGameCheckEvent.hpp>
+#include <Features/Events/ThirdPersonEvent.hpp>
+
 #include <Features/Events/RenderEvent.hpp>
 
 #include <Features/Modules/Visual/Interface.hpp>
@@ -24,6 +26,8 @@
 #include <SDK/Minecraft/Actor/SyncedPlayerMovementSettings.hpp>
 #include <SDK/Minecraft/Network/Packets/MovePlayerPacket.hpp>
 #include <SDK/Minecraft/World/Level.hpp>
+
+#include "ClickGui.hpp"
 
 #ifdef __DEBUG__
 std::vector<unsigned char> gFsBytes2 = { 0x0f, 0x85 };
@@ -98,6 +102,21 @@ void Interface::onDisable()
     patchFullStack(false);
 #endif
 }
+
+
+void Interface::onChengePerson(ThirdPersonEvent& event)
+{
+    if (mSetPerson != -1) {
+        event.setCurrent(mSetPerson);
+        mSetPerson = -1;
+    }
+    else {
+        mSetPerson = -1;
+    }
+    mCurrentPerson = event.getCurrent();
+}
+
+
 
 void Interface::renderHoverText()
 {
@@ -244,7 +263,7 @@ void Interface::onActorRenderEvent(ActorRenderEvent& event)
     if (event.mEntity != player) return;
     if (*event.mPos == glm::vec3(0.f, 0.f, 0.f) && *event.mRot == glm::vec2(0.f, 0.f)) return;
 
-    bool firstPerson = ClientInstance::get()->getOptions()->mThirdPerson->value == 0;
+    bool firstPerson = mCurrentPerson == 0;
     if (firstPerson && !player->getFlag<RenderCameraComponent>()) return;
 
 
@@ -279,7 +298,7 @@ void Interface::onActorRenderEvent(ActorRenderEvent& event)
     bodyRotations->yOldBodyRot = realOldBodyYaw;
 }
 
-void Interface::onDrawImageEvent(DrawImageEvent& event)
+/*void Interface::onDrawImageEvent(DrawImageEvent& event)
 {
     if (!mSlotEasing.mValue) return;
     // Wait for ImGui to be initialized
@@ -298,7 +317,7 @@ void Interface::onDrawImageEvent(DrawImageEvent& event)
         hotbarPos.y = event.mPos->y;
         *event.mPos = hotbarPos;
     }
-}
+}*/
 
 
 void Interface::onBaseTickEvent(BaseTickEvent& event)

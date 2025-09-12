@@ -6,12 +6,19 @@
 
 #include <SDK/OffsetProvider.hpp>
 #include <Utils/MemUtils.hpp>
-
+/*
 ItemStack* Container::getItem(int slot)
 {
     static auto vFunc = OffsetProvider::Container_getItem;
     return MemUtils::callVirtualFunc<ItemStack*, int>(vFunc, this, slot);
+}*/
+ItemStack* Container::getItem(int slot)
+{
+    return MemUtils::callVirtualFunc<ItemStack*, int>(7, this, slot);
 }
+
+
+
 
 void Container::setItem(int slot, ItemStack* item)
 {

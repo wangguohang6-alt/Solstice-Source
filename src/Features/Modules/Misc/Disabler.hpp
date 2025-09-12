@@ -13,7 +13,8 @@ public:
         SentinelNew,
 #endif
         Custom,
-        BDSPrediction
+        BDSPrediction,
+        sentinelfull
     };
     enum class DisablerType {
         PingSpoof,
@@ -28,12 +29,12 @@ public:
 #ifdef __PRIVATE_BUILD__
         "SentinelNew",
 #endif
-        "Custom", "BDS Prediction");
+        "Custom", "BDS Prediction", "sentinel full ");
     EnumSettingT<DisablerType> mDisablerType = EnumSettingT<DisablerType>("Disabler Type", "The type of disabler to use.", DisablerType::PingSpoof, "Ping Spoof", "Ping Holder"
 #ifdef __PRIVATE_BUILD__
-        ,"Move Fix", "Move Fix V2"
+        , "Move Fix", "Move Fix V2"
 #endif
-        );
+    );
 #ifdef __PRIVATE_BUILD__
     NumberSetting mQueuedPackets = NumberSetting("Queued Packets", "The amount of packets to queue", 120, 0, 300, 1);
     BoolSetting mReverseQueue = BoolSetting("Reverse Queue", "Whether or not to reverse the queue", false);
@@ -49,8 +50,8 @@ public:
     BoolSetting mOnGroundSpoof = BoolSetting("On Ground Spoof", "Whether or not to spoof on ground", false);
     BoolSetting mInputSpoof = BoolSetting("Input Spoof", "Whether or not to spoof input mode", false);
     BoolSetting mClickPosFix = BoolSetting("Click Pos Fix", "Whether or not to fix click pos", false);
-
-    Disabler() : ModuleBase<Disabler>("Disabler", "Attempts to disable Anti-Cheat checks by exploiting them.", ModuleCategory::Misc, 0, false){
+    NumberSetting mLatencyFlushInterval = NumberSetting("Latency flush interval", "the auau", 10, 0, 100, 1);
+    Disabler() : ModuleBase<Disabler>("Disabler", "Attempts to disable Anti-Cheat checks by exploiting them.", ModuleCategory::Misc, 0, false) {
         addSetting(&mMode);
         addSetting(&mDisablerType);
 #ifdef __DEBUG__
@@ -63,6 +64,7 @@ public:
         addSetting(&mMinDelay);
         addSetting(&mMaxDelay);
         addSettings(&mInteract, &mCancel, &mGlide, &mOnGroundSpoof, &mInputSpoof, &mClickPosFix);
+        addSetting(&mLatencyFlushInterval);
 
         VISIBILITY_CONDITION(mDisablerType, mMode.mValue == Mode::Flareon);
 #ifdef __DEBUG__
@@ -95,6 +97,9 @@ public:
     bool mShouldUpdateClientTicks = false;
     glm::vec3 mLastPosition = { 0, 0, 0 };
     Actor* mFirstAttackedActor = nullptr;
+    std::vector<int64_t> mLatencyTimestamps;
+    int                mLatencyTickCounter = 0;
+    // int                mLatencyFlushInterval = 10;
 
     std::map<int64_t, uint64_t> mPacketQueue;
     void sortQueueByTime()

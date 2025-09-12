@@ -8,6 +8,7 @@
 #include <SDK/Minecraft/Actor/Actor.hpp>
 #include <SDK/Minecraft/Rendering/LevelRenderer.hpp>
 #include <Features/Events/DrawImageEvent.hpp>
+#include <Features/Modules/Visual/ClickGui.hpp>
 
 #include "D3DHook.hpp"
 
@@ -16,6 +17,9 @@ std::unique_ptr<Detour> SetupAndRenderHook::mDrawImageDetour;
 
 void* SetupAndRenderHook::onSetupAndRender(void* screenView, void* mcuirc)
 {
+    auto ci = ClientInstance::get();
+    auto Clickgui = gFeatureManager->mModuleManager->getModule<ClickGui>();
+    if (Clickgui->mEnabled)ci->releaseMouse();
     auto original = mSetupAndRenderDetour->getOriginal<&SetupAndRenderHook::onSetupAndRender>();
 
     static bool once = false;
@@ -25,7 +29,7 @@ void* SetupAndRenderHook::onSetupAndRender(void* screenView, void* mcuirc)
         initVt(mcuirc);
     }
 
-    auto ci = ClientInstance::get();
+
     if (!ci) return original(screenView, mcuirc);
 
     auto player = ClientInstance::get()->getLocalPlayer();
@@ -49,9 +53,9 @@ void* SetupAndRenderHook::onDrawImage(void* context, mce::TexturePtr* texture, g
 {
     auto original = mDrawImageDetour->getOriginal<&SetupAndRenderHook::onDrawImage>();
 
-    nes::event_holder<DrawImageEvent> holder = nes::make_holder<DrawImageEvent>(context, texture, pos, size, uv, color);
-    gFeatureManager->mDispatcher->trigger(holder);
-    if (holder->isCancelled()) return nullptr;
+    //nes::event_holder<DrawImageEvent> holder = nes::make_holder<DrawImageEvent>(context, texture, pos, size, uv, color);
+    //gFeatureManager->mDispatcher->trigger(holder);
+    //if (holder->isCancelled()) return nullptr;
 
     return original(context, texture, pos, size, uv, color, unk);
 }

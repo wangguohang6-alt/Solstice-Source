@@ -61,8 +61,9 @@ public:
         gFeatureManager->mDispatcher->listen<ActorRenderEvent, &Interface::onActorRenderEvent, nes::event_priority::NORMAL>(this);
         gFeatureManager->mDispatcher->listen<BaseTickEvent, &Interface::onBaseTickEvent>(this);
         gFeatureManager->mDispatcher->listen<PacketOutEvent, &Interface::onPacketOutEvent, nes::event_priority::ABSOLUTE_LAST>(this);
-        gFeatureManager->mDispatcher->listen<DrawImageEvent, &Interface::onDrawImageEvent>(this);
+        //gFeatureManager->mDispatcher->listen<DrawImageEvent, &Interface::onDrawImageEvent>(this);
         gFeatureManager->mDispatcher->listen<PreGameCheckEvent, &Interface::onPregameCheckEvent>(this);
+        gFeatureManager->mDispatcher->listen<ThirdPersonEvent, &Interface::onChengePerson>(this);
 
         addSettings(
             &mNamingStyle,
@@ -155,6 +156,11 @@ public:
         return result;
     }
 
+
+    int mCurrentPerson = 0;
+    int mSetPerson = -1;
+
+
     void onEnable() override;
     void onDisable() override;
     void renderHoverText();
@@ -162,9 +168,11 @@ public:
     void onPregameCheckEvent(class PreGameCheckEvent& event);
     void onRenderEvent(class RenderEvent& event);
     void onActorRenderEvent(class ActorRenderEvent& event);
-    void onDrawImageEvent(class DrawImageEvent& event);
+    //void onDrawImageEvent(class DrawImageEvent& event);
     void onBaseTickEvent(class BaseTickEvent& event);
     void onPacketOutEvent(class PacketOutEvent& event);
+    void onChengePerson(class ThirdPersonEvent& event);
+
 };
 
 class BodyYaw

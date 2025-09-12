@@ -22,7 +22,6 @@ public:
     }
 
     static void patchOverlay(bool);
-    static void patchFireRender(bool);
 
     void onEnable() override;
     void onDisable() override;

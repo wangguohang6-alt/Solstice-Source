@@ -12,6 +12,9 @@
 
 #include <Utils/Structs.hpp>
 
+#include "lualib.h"
+#include "Actor/Actor.hpp"
+
 #include "KeyboardMouseSettings.hpp"
 
 ClientInstance* ClientInstance::get()
@@ -77,6 +80,7 @@ KeyboardMouseSettings* ClientInstance::getKeyboardSettings()
 MinecraftGame* ClientInstance::getMinecraftGame()
 {
     return MinecraftGame::getInstance();
+    
 }
 
 Actor* ClientInstance::getLocalPlayer()
@@ -94,11 +98,27 @@ Options* ClientInstance::getOptions()
     return MemUtils::callVirtualFunc<Options*>(OffsetProvider::ClientInstance_getOptions, this);
 }
 
+/*std::string ClientInstance::getScreenName() //TODO: SEE FLARIAL
+{
+    std::string screen = "no_screen";
+    //sig is better
+    static auto sig = SigManager::ClientInstance_getScreenName;
+    auto fn = reinterpret_cast<std::string& (__thiscall *)(ClientInstance*, std::string&)>(sig);
+    screen = fn(this, screen);
+    return screen;
+}*/
+
 std::string ClientInstance::getScreenName()
 {
-    std::string name = "no_screen";
-    name = MemUtils::callVirtualFunc<std::string&, std::string&>(OffsetProvider::ClientInstance_getScreenName, this, name);
-    return name;
+    std::string screen = "hud_screen";
+    return screen;
+}
+
+std::string ClientInstance::lawl()
+{
+    std::string screen = "no_screen";
+    MemUtils::callVirtualFunc<std::string&>(271, this, screen);
+    return screen;
 }
 
 void ClientInstance::setDisableInput(bool disable)

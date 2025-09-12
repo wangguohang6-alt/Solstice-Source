@@ -39,13 +39,14 @@
 #include <Utils/GameUtils/ItemUtils.hpp>
 #include <Utils/MiscUtils/BlockUtils.hpp>
 #include <Utils/MiscUtils/ImRenderUtils.hpp>
+#include <SDK/Minecraft/Actor/GameMode.hpp>
 
 void TestModule::onEnable()
 {
     gFeatureManager->mDispatcher->listen<BaseTickEvent, &TestModule::onBaseTickEvent>(this);
     gFeatureManager->mDispatcher->listen<RenderEvent, &TestModule::onRenderEvent>(this);
     gFeatureManager->mDispatcher->listen<PacketInEvent, &TestModule::onPacketInEvent>(this);
-    gFeatureManager->mDispatcher->listen<PacketOutEvent, &TestModule::onPacketOutEvent>(this);
+    gFeatureManager->mDispatcher->listen<PacketOutEvent, &TestModule::onPacketOutEvent, nes::event_priority::VERY_LAST>(this);
     gFeatureManager->mDispatcher->listen<LookInputEvent, &TestModule::onLookInputEvent>(this);
 
     auto player = ClientInstance::get()->getLocalPlayer();
@@ -117,15 +118,47 @@ void TestModule::onBaseTickEvent(BaseTickEvent& event)
 
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player) return;
+    glm::vec2 fov = ClientInstance::get()->getFov();
+
+    if (!player->getSupplies()) return;
+    if (!player->getSupplies()->getContainer()) return;
+    if (!player->getSupplies()->getContainer()->getItem(player->getSupplies()->getmSelectedSlot())) return;
+
+    auto lawl2 = player->getSupplies()->getmSelectedSlot();
+    auto lawl = player->getSupplies()->getContainer()->getItem(lawl2)->getItem()->getmItemId();
+    //auto lawl = player->getSupplies()->getContainer()->getItem(player->getSupplies()->getmSelectedSlot())->getItem()->getmLegacy()->getBlockId();
+    //ChatUtils::displayClientMessage("Lawl: " + lawl);
+    ChatUtils::displayClientMessage("Lawl: " + std::to_string(lawl2));
+    ChatUtils::displayClientMessage("Lawl2: " + lawl);
+  //  ChatUtils::displayClientMessage("Lawl: " + lawl);
+
+    
+
+    return;
     if (mMode.mValue == Mode::DebugCameraTest)
     {
         player->setFlag<MobIsJumpingFlagComponent>(false);
+    }
+    
+    if (mMode.mValue == Mode::Regen) {
+        static bool wasRotating = false;
+        if (player->isDestroying()) {
+            if (mProgress.mValue <= player->getGameMode()->mBreakProgress) {
+                mRotatePos = player->getLevel()->getHitResult()->mBlockPos;
+                mShouldRotate = true;
+                wasRotating = true;
+            }
+        }
+        if (wasRotating && !mShouldRotate) {
+            mShouldRotate = true;
+            wasRotating = false;
+        }
     }
 
     ItemStack* stack = player->getSupplies()->getContainer()->getItem(0);
     auto networkDescriptor = NetworkItemStackDescriptor(*stack);
     spdlog::info("constructed NetworkItemStackDescriptor");
-    conStack = ItemStack::fromDescriptor(networkDescriptor);
+    //conStack = ItemStack::fromDescriptor(networkDescriptor);
     spdlog::info("constructed ItemStack from NetworkItemStackDescriptor");
 
     gDaBlock = ClientInstance::get()->getBlockSource()->getBlock(*player->getPos());
@@ -162,6 +195,8 @@ void TestModule::onBaseTickEvent(BaseTickEvent& event)
     if (!target) return;
 
     float distance = player->distanceTo(target);
+
+
 
 
 
@@ -207,11 +242,44 @@ void TestModule::onBaseTickEvent(BaseTickEvent& event)
 
 void TestModule::onPacketOutEvent(PacketOutEvent& event)
 {
+    return;
+    auto player = ClientInstance::get()->getLocalPlayer();
+    if (!player)
+        return;
+    if (mMode.mValue == Mode::Regen) {
+        if (event.mPacket->getId() == PacketID::PlayerAuthInput) {
+            auto packet = event.getPacket<PlayerAuthInputPacket>();
+            if (mShouldRotate) {
+                const glm::vec3 blockPos = mRotatePos;
+                auto blockAABB = AABB(blockPos, glm::vec3(1, 1, 1));
+                glm::vec2 rotations = MathUtils::getRots(*player->getPos(), blockAABB);
+                packet->mRot = rotations;
+                packet->mYHeadRot = rotations.y;
+                mShouldRotate = false;
+            }
+        }
+    }
 
+    if (event.mPacket->getId() == PacketID::InventoryTransaction)
+    {
+        if (const auto it = event.getPacket<InventoryTransactionPacket>(); it->mTransaction->type ==
+            ComplexInventoryTransaction::Type::ItemUseTransaction)
+        {
+            const auto transac = reinterpret_cast<ItemUseInventoryTransaction*>(it->mTransaction.get());
+            if (transac->mActionType == ItemUseInventoryTransaction::ActionType::Place)
+            {
+                auto block = ClientInstance::get()->getBlockSource()->getBlock(transac->mBlockPos);
+                //ChatUtils::displayClientMessage("BlockName:" + block->mLegacy->mTileName);
+                ChatUtils::displayClientMessage("IsSolid:" + std::to_string(block->mLegacy->mMaterial->mIsSolid));
+            }
+        }
+    }
 }
 
 void TestModule::onPacketInEvent(PacketInEvent& event)
 {
+    return;
+
     if (mMode.mValue == Mode::PathTest && event.mPacket->getId() == PacketID::MovePlayer)
     {
         auto player = ClientInstance::get()->getLocalPlayer();
@@ -241,6 +309,8 @@ void displayCopyableAddress(const std::string& name, void* address)
 
 void TestModule::onLookInputEvent(LookInputEvent& event)
 {
+    return;
+
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player) return;
 
@@ -283,6 +353,8 @@ enum class Tab
 
 void TestModule::onRenderEvent(RenderEvent& event)
 {
+    return;
+
     auto player = ClientInstance::get()->getLocalPlayer();
     if (!player)
     {
@@ -346,12 +418,6 @@ void TestModule::onRenderEvent(RenderEvent& event)
                     displayCopyableAddress("PlayerInventory", supplies);
                     displayCopyableAddress("GameMode", player->getGameMode());
                     displayCopyableAddress("Level", player->getLevel());
-                    if (player->getLevel())
-                    {
-                        displayCopyableAddress("BlockPalette", player->getLevel()->getBlockPalette());
-                        displayCopyableAddress("BlockPalette_mLevel", player->getLevel()->getBlockPalette()->mLevel);
-                        ImGui::Text("mLevel correct: %s", player->getLevel()->getBlockPalette()->mLevel == player->getLevel() ? "true" : "false");
-                    }
                 }
 
                 auto lpid = player->mContext.mEntityId;

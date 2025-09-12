@@ -22,6 +22,8 @@ enum class TextPacketType : unsigned char {
     TextObjectAnnouncement = 0xB,
 };
 
+//
+
 class TextPacket : public Packet {
 public:
     static const PacketID ID = PacketID::Text;

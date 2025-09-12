@@ -8,6 +8,7 @@
 #include "PacketSendHook.hpp"
 #include <Features/FeatureManager.hpp>
 #include <SDK/Minecraft/Actor/Actor.hpp>
+
 #include <SDK/Minecraft/World/Level.hpp>
 
 #include "Features/Events/ChatEvent.hpp"
@@ -32,6 +33,21 @@ void* PacketSendHook::onPacketSend(void* _this, Packet *packet) {
         }
     }
 
+    if (packet->getId() == PacketID::PlayerAuthInput)
+    {
+        auto paip = reinterpret_cast<PlayerAuthInputPacket*>(packet);
+        if (mApplyJump)
+        {
+            auto player = ClientInstance::get()->getLocalPlayer();
+            if (Keyboard::isUsingMoveKeys()) paip->mInputData |= AuthInputAction::JUMPING | AuthInputAction::WANT_UP | AuthInputAction::JUMP_DOWN;
+            if (!player->isOnGround() && player->wasOnGround() && Keyboard::isUsingMoveKeys()) {
+                paip->mInputData |= AuthInputAction::START_JUMPING;
+            }
+
+            mApplyJump = false;
+        }
+    }
+
     auto holda = nes::make_holder<PacketOutEvent>(packet);
     gFeatureManager->mDispatcher->trigger(holda);
     if (holda->isCancelled()) return nullptr;
@@ -42,11 +58,11 @@ void* PacketSendHook::onPacketSend(void* _this, Packet *packet) {
         authPacket->mInteractRots = authPacket->mRot;
     }
 
-    if (packet->getId() == PacketID::PlayerAuthInput) {
+    /*if (packet->getId() == PacketID::PlayerAuthInput) {
         auto input = reinterpret_cast<PlayerAuthInputPacket*>(packet);
         sendPacket(input);
         return nullptr;
-    }
+    }*/
 
     return original(_this, packet);
 }

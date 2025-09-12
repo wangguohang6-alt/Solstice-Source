@@ -54,13 +54,23 @@ std::string OAuthUtils::getToken()
 std::string OAuthUtils::getLatestCommitHash()
 {
     HttpRequest request(HttpMethod::GET, sEndpoint + "getLatestCommitHash", "", "", [](HttpResponseEvent event) {}, nullptr);
-
     HttpResponseEvent event = request.send();
 
-    if(event.mStatusCode == 200)
+    if (event.mStatusCode == 200)
     {
-        nlohmann::json json = nlohmann::json::parse(event.mResponse);
-        return json[xorstr_("commitHash")].get<std::string>();
+        try
+        {
+            nlohmann::json json = nlohmann::json::parse(event.mResponse);
+
+            if (json.contains(xorstr_("commitHash"))) {
+                return json[xorstr_("commitHash")].get<std::string>();
+            }
+        }
+        catch (const nlohmann::json::parse_error& e)
+        {
+            spdlog::warn("[OAuth] We got a fcking error: {}", e.what());
+            return "";
+        }
     }
 
     return "";

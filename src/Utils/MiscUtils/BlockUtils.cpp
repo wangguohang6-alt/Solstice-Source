@@ -4,7 +4,7 @@
 
 #include "BlockUtils.hpp"
 
-#include <src/Features/Modules/Player/Regen.hpp>
+//#include <src/Features/Modules/Player/Regen.hpp>
 #include <src/Features/Modules/Player/OreMiner.hpp>
 
 #include <Features/Events/BlockChangedEvent.hpp>
@@ -33,7 +33,7 @@ bool BlockUtils::isGoodBlock(glm::ivec3 blockPos)
     Block* block = ClientInstance::get()->getBlockSource()->getBlock(blockPos);
     int blockId = block->toLegacy()->getBlockId();
     bool isLiquid = 8 <= blockId && blockId <= 11;
-    return blockId != 0 && !isLiquid && block->toLegacy()->mMaterial->mIsBlockingMotion;
+    return blockId != 0 && !isLiquid && block->toLegacy()->mSolid;
 }
 
 
@@ -49,9 +49,9 @@ std::vector<BlockInfo> BlockUtils::getBlockList(const glm::ivec3& position, floa
     const int radius = static_cast<int>(r);
     newBlocks.reserve(radius * radius * radius); // reserve enough space for all blocks
 
-    for (int x = position.x - radius; x < position.x + radius; x++)
-        for (int y = position.y - radius; y < position.y + radius; y++)
-            for (int z = position.z - radius; z < position.z + radius; z++)
+    for (int x = position.x - radius; x <= position.x + radius; x++)
+        for (int y = position.y - radius; y <= position.y + radius; y++)
+            for (int z = position.z - radius; z <= position.z + radius; z++)
                 if (const auto block = blockSource->getBlock({ x, y, z }))
                     newBlocks.push_back({ block, { x, y, z } });
 
@@ -181,7 +181,7 @@ int BlockUtils::getBlockPlaceFace(glm::ivec3 blockPos)
     return -1;
 }
 
-int BlockUtils::getExposedFace(glm::ivec3 blockPos)
+int BlockUtils::getExposedFace(glm::ivec3 blockPos, bool useFilter)
 {
     static std::vector<glm::ivec3> offsetList = {
         glm::ivec3(0, -1, 0),
@@ -192,7 +192,12 @@ int BlockUtils::getExposedFace(glm::ivec3 blockPos)
         glm::ivec3(1, 0, 0),
     };
     for (int i = 0; i < offsetList.size(); i++) {
-        if (isAirBlock(blockPos + offsetList[i])) return i;
+        glm::ivec3 checkPos = blockPos + offsetList[i];
+        if (isAirBlock(checkPos)) return i;
+        if (useFilter)
+        {
+            if (!ClientInstance::get()->getBlockSource()->getBlock(checkPos)->mLegacy->mSolid) return i;
+        }
     }
     return -1;
 }
@@ -344,7 +349,7 @@ void BlockUtils::startDestroyBlock(glm::vec3 pos, int side)
     res->mPos = blockPos;
 
     bool isDestroyedOut = false;
-    player->getGameMode()->startDestroyBlock(&blockPos, side, isDestroyedOut);
+    player->getGameMode()->startDestroyBlock(blockPos, side, isDestroyedOut);
     //if (!isDestroyedOut) player->getGameMode()->continueDestroyBlock(blockPos, side, *player->getPos(), isDestroyedOut);
 
     vec += blockFaceOffsets[side] * -0.5f;
@@ -400,7 +405,7 @@ void BlockUtils::destroyBlock(glm::vec3 pos, int side, bool useTransac)
         bool oldSwinging = player->isSwinging();
         int oldSwingProgress = player->getSwingProgress();
 
-        player->getGameMode()->destroyBlock(&blockPos, side);
+        player->getGameMode()->destroyBlock(blockPos, side);
         player->getGameMode()->stopDestroyBlock(blockPos);
 
         player->setSwinging(oldSwinging);
@@ -417,7 +422,7 @@ void BlockUtils::destroyBlock(glm::vec3 pos, int side, bool useTransac)
     actionPkt->mRuntimeId = player->getRuntimeID();
     actionPkt->mtIsFromServerPlayerMovementSystem = false;
 
-    PacketUtils::queueSend(actionPkt);
+    PacketUtils::queueSend(actionPkt, false);
     auto pkt = MinecraftPackets::createPacket<InventoryTransactionPacket>();
 
     auto cit = std::make_unique<ItemUseInventoryTransaction>();
@@ -442,7 +447,7 @@ bool BlockUtils::isMiningPosition(glm::ivec3 blockPos) {
 
     if (0 < player->getGameMode()->mBreakProgress && player->getLevel()->getHitResult()->mBlockPos == blockPos) return true;
 
-    if (Regen::mIsMiningBlock && Regen::mCurrentBlockPos == blockPos) return true;
+    //if (Regen::mIsMiningBlock && Regen::mCurrentBlockPos == blockPos) return true;
 
     if (OreMiner::mIsMiningBlock && OreMiner::mCurrentBlockPos == blockPos) return true;
 

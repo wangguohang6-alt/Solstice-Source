@@ -12,7 +12,7 @@
 class ClientInstance {
 public:
     //CLASS_FIELD(class MinecraftGame*, mcGame, 0xC8);
-
+    CLASS_FIELD(uintptr_t**, vtable, 0x0);
     static ClientInstance* get();
 
 
@@ -37,4 +37,8 @@ public:
     void grabMouse();
     void releaseMouse();
     void playUi(const std::string& soundName, float volume, float pitch);
+    std::string lawl();
+
+
+
 };

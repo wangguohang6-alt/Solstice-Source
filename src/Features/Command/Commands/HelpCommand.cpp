@@ -39,6 +39,24 @@ void HelpCommand::execute(const std::vector<std::string>& args)
         ChatUtils::displayClientMessage("§6- §e{} §7- {}", command->name, command->getDescription());
     }
 
+    int scriptCount = 0;
+    bool first = true;
+    for (const auto& s : gFeatureManager->mScriptManager->mScripts)
+    {
+        if (s->type != SolsticeScriptType::COMMAND) continue;
+
+        auto command = std::static_pointer_cast<CommandScript>(s);
+
+        if (first)
+        {
+            ChatUtils::displayClientMessage("§6Scripts:");
+            first = false;
+        }
+
+        scriptCount++;
+        ChatUtils::displayClientMessage("§6- §e{} §7- {}", command->commandName, command->commandDescription);
+    }
+
     ChatUtils::displayClientMessage("§6Use §e.help <command> §6for more information on a specific command.");
 }
 

@@ -8,17 +8,19 @@
 class MidclickAction : public ModuleBase<MidclickAction> {
 public:
     BoolSetting mThrowPearls = BoolSetting("Throw Pearls", "Whether to throw an ender pearl when you middle click", false);
+    BoolSetting mThrowSnowballs = BoolSetting("Throw Snowballs", "Whether to throw a snowball when you middle click", false);
     BoolSetting mHotbarOnly = BoolSetting("Hotbar Only", "Whether to only throw pearls from the hotbar", false);
     BoolSetting mAddFriend = BoolSetting("Add Friend", "Whether to add the player you middle clicked as a friend", false);
     BoolSetting mSetNukerBlock = BoolSetting("Set Nuker Block", "Whether to specify block of nuker", false);
     MidclickAction() : ModuleBase("MidclickAction", "Performs an action when you middle click", ModuleCategory::Player, 0, false)
     {
         addSetting(&mThrowPearls);
+        addSetting(&mThrowSnowballs);
         addSetting(&mHotbarOnly);
         addSetting(&mAddFriend);
         addSetting(&mSetNukerBlock);
 
-        VISIBILITY_CONDITION(mHotbarOnly, mThrowPearls.mValue == true);
+        VISIBILITY_CONDITION(mHotbarOnly, mThrowPearls.mValue == true || mThrowSnowballs.mValue == true);
 
         mNames = {
               {Lowercase, "midclickaction"},

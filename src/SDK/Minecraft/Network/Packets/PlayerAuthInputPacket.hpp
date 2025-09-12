@@ -239,6 +239,11 @@ inline bool operator!(AuthInputAction a) {
     return static_cast<uint64_t>(a) == 0;
 }
 
+class PackedItemUseLegacyInventoryTransaction
+{
+
+};
+
 class PlayerAuthInputPacket : public Packet {
 public:
     // PlayerAuthInputPacket inner types define
@@ -302,11 +307,12 @@ public:
     glm::vec3                                                           mPos;
     float                                                               mYHeadRot;
     glm::vec3                                                           mPosDelta;
-    glm::vec2                                                           mAnalogMoveVector;
     glm::vec2                                                           mVehicleRotation;
+    glm::vec2                                                           mAnalogMoveVector;
     glm::vec2                                                           mMove;
     glm::vec2                                                           mInteractRots;
-    glm::vec2                                                           mCameraOrientation;
+    glm::vec3                                                           mCameraOrientation;
+    glm::vec2                                                           mRawMoveVector;
     AuthInputAction                                                     mInputData;
     InputMode                                                           mInputMode;
     ClientPlayMode                                                      mPlayMode;

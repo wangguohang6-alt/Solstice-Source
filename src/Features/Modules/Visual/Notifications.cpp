@@ -12,6 +12,7 @@ void Notifications::onEnable()
 {
     gFeatureManager->mDispatcher->listen<NotifyEvent, &Notifications::onNotifyEvent>(this);
     gFeatureManager->mDispatcher->listen<ModuleStateChangeEvent, &Notifications::onModuleStateChange>(this);
+    gFeatureManager->mDispatcher->listen<ModuleScriptStateChangeEvent, &Notifications::onModuleScriptStateChange>(this);
     gFeatureManager->mDispatcher->listen<ConnectionRequestEvent, &Notifications::onConnectionRequestEvent>(this);
 }
 
@@ -19,6 +20,7 @@ void Notifications::onDisable()
 {
     gFeatureManager->mDispatcher->deafen<NotifyEvent, &Notifications::onNotifyEvent>(this);
     gFeatureManager->mDispatcher->deafen<ModuleStateChangeEvent, &Notifications::onModuleStateChange>(this);
+    gFeatureManager->mDispatcher->deafen<ModuleScriptStateChangeEvent, &Notifications::onModuleScriptStateChange>(this);
     gFeatureManager->mDispatcher->deafen<ConnectionRequestEvent, &Notifications::onConnectionRequestEvent>(this);
 }
 
@@ -121,10 +123,17 @@ void Notifications::onModuleStateChange(ModuleStateChangeEvent& event)
     mNotifications.push_back(notification);
 }
 
+void Notifications::onModuleScriptStateChange(ModuleScriptStateChangeEvent& event)
+{
+    if (event.isCancelled()) return;
+    const auto notification = Notification(event.mModule->moduleName + " was " + (event.mEnabled ? "enabled" : "disabled"), Notification::Type::Info, 3.0f);
+    mNotifications.push_back(notification);
+}
+
 void Notifications::onConnectionRequestEvent(ConnectionRequestEvent& event)
 {
-    const auto notification = Notification("Connecting to " + *event.mServerAddress + "...", Notification::Type::Info, 6.0f);
-    mNotifications.push_back(notification);
+  //  const auto notification = Notification("Connecting to " + *event.mServerAddress + "...", Notification::Type::Info, 6.0f);
+//    mNotifications.push_back(notification);
 }
 
 void Notifications::onNotifyEvent(NotifyEvent& event)

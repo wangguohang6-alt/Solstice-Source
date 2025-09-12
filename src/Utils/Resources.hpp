@@ -30,6 +30,7 @@ LOAD_RESOURCE(skinblinker_txt);
 LOAD_RESOURCE(smooth_off_wav);
 LOAD_RESOURCE(smooth_on_wav);
 LOAD_RESOURCE(windows_background_wav);
+LOAD_RESOURCE(yo_at_here_gif);
 
 class ResourceLoader {
 public:

@@ -3,6 +3,7 @@
 // Created by vastrakai on 11/10/2024.
 //
 #include <Hook/Hook.hpp>
+#include <SDK/Minecraft/mce.hpp>
 
 class NametagRenderHook : public Hook
 {

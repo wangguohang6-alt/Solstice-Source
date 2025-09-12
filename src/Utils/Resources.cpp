@@ -81,4 +81,6 @@ void ResourceLoader::loadResources() {
     Resources.emplace("smooth_on.wav", smooth_on_wav);
     auto windows_background_wav = GET_RESOURCE(windows_background_wav);
     Resources.emplace("windows_background.wav", windows_background_wav);
+    auto yo_at_here_gif = GET_RESOURCE(yo_at_here_gif);
+    Resources.emplace("yo_at_here.gif", yo_at_here_gif);
 }

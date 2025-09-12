@@ -20,4 +20,3 @@ public:
     static void simulateMouseInput(char actionButtonId, int buttonData, short x = 0, short y = 0, short dx = 0, short dy = 0);
     void init() override;
 };
-

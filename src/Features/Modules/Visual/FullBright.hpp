@@ -20,7 +20,7 @@ public:
 
     bool mFinishedAnimation = true;
     float mOldValue = 1.f;
-
+	float mCurrentGamma = 1.f;
     void onEnable() override;
     void onDisable() override;
     void onRenderEvent(class RenderEvent& event);

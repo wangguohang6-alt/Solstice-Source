@@ -6,6 +6,7 @@
 
 #include <Features/Events/ChatEvent.hpp>
 #include <Features/Events/PacketInEvent.hpp>
+#include <SDK/Minecraft/ClientInstance.hpp>
 #include <SDK/Minecraft/Network/Packets/TextPacket.hpp>
 #include <Utils/MiscUtils/MathUtils.hpp>
 
@@ -231,7 +232,7 @@ void CustomChat::onRenderEvent(RenderEvent& event)
         drawList->PopClipRect();
         FontHelper::popPrefFont();
     } else {
-        bool isInGyat = ClientInstance::get()->getScreenName() == "chat_screen";
+        bool isInChatScreen = ClientInstance::get()->getScreenName() == "chat_screen";
         auto fontHeight = ImGui::GetFont()->CalcTextSizeA(
                     fontSize,
                     FLT_MAX,
@@ -239,7 +240,7 @@ void CustomChat::onRenderEvent(RenderEvent& event)
                     ""
                 ).y;
 
-        easedHeight = MathUtils::lerp(easedHeight, isInGyat ?  (fontHeight + 5.0f) * 12 : totalHeight, delta * 8.f);
+        easedHeight = MathUtils::lerp(easedHeight, isInChatScreen ?  (fontHeight + 5.0f) * 12 : totalHeight, delta * 8.f);
         FontHelper::popPrefFont();
     }
 }

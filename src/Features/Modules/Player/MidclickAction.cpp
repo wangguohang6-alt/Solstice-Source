@@ -41,20 +41,34 @@ void MidclickAction::onBaseTickEvent(BaseTickEvent& event)
     auto player = event.mActor;
 
     int slot = -1;
-    for (int i = 0; i < 36; i++)
-    {
-        auto itemStack = player->getSupplies()->getContainer()->getItem(i);
-        if (!itemStack) continue;
-        if (!itemStack->mItem) continue;
+    std::string itemToSearch;
+    std::string itemToNotify;
 
-        auto item = itemStack->getItem();
+    if (mThrowPearls.mValue) {
+        itemToSearch = "ender_pearl";
+        itemToNotify = "pearls";
+    } else if (mThrowSnowballs.mValue) {
+        itemToSearch = "snowball";
+        itemToNotify = "snowballs";
+    }
 
-        if (item->mName == "ender_pearl")
+    if (!itemToSearch.empty()) {
+        for (int i = 0; i < 36; i++)
         {
-            slot = i;
-            break;
+            auto itemStack = player->getSupplies()->getContainer()->getItem(i);
+            if (!itemStack) continue;
+            if (!itemStack->mItem) continue;
+
+            auto item = itemStack->getItem();
+
+            if (item->mName == itemToSearch)
+            {
+                slot = i;
+                break;
+            }
         }
     }
+
 
     if (mHotbarOnly.mValue && slot > 8) slot = -1;
 
@@ -62,7 +76,7 @@ void MidclickAction::onBaseTickEvent(BaseTickEvent& event)
     {
         mThrowNextTick = false;
         ItemUtils::useItem(slot);
-        spdlog::info("Used ender pearl!");
+        spdlog::info("Used {}!", itemToSearch);
     }
 
     static bool lastMidClick = false;
@@ -108,7 +122,7 @@ void MidclickAction::onBaseTickEvent(BaseTickEvent& event)
                 ChatUtils::displayClientMessage("§aSet block to " + blockName);
             }
         }
-        else if (mThrowPearls.mValue)
+        else if (mThrowPearls.mValue || mThrowSnowballs.mValue)
         {
             if (slot != -1)
             {
@@ -116,8 +130,10 @@ void MidclickAction::onBaseTickEvent(BaseTickEvent& event)
                 mRotateNextTick = true;
             }
             else {
-                NotifyUtils::notify("No pearls found!", 4.f, Notification::Type::Warning);
-                ClientInstance::get()->playUi("note.bass", 0.75f, 0.5);
+                if (!itemToNotify.empty()) {
+                    NotifyUtils::notify("No " + itemToNotify + " found!", 4.f, Notification::Type::Warning);
+                    ClientInstance::get()->playUi("note.bass", 0.75f, 0.5);
+                }
             }
         }
     }

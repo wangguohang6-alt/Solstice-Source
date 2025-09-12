@@ -12,6 +12,7 @@
 #include "Combat/InfiniteAura.hpp"
 #include "Combat/Reach.hpp"
 #include "Combat/TriggerBot.hpp"
+#include "Combat/HitBoxes.hpp"
 
 #include "Misc/AntiBot.hpp"
 #include "Misc/Anticheat.hpp"
@@ -31,7 +32,7 @@
 #include "Misc/Disabler.hpp"
 #include "Misc/EditionFaker.hpp"
 #include "Misc/Friends.hpp"
-#include "Misc/IRC.hpp"
+//#include "Misc/IRC.hpp"
 #include "Misc/KickSounds.hpp"
 #include "Misc/Killsults.hpp"
 #include "Misc/NetSkip.hpp"
@@ -45,12 +46,12 @@
 #include "Misc/StaffAlert.hpp"
 #include "Misc/TestModule.hpp"
 #include "Misc/ToggleSounds.hpp"
-#include "Misc/VoiceChat.hpp"
 
 #include "Movement/AirJump.hpp"
 #include "Movement/AirSpeed.hpp"
 #include "Movement/AntiImmobile.hpp"
 #include "Movement/AutoPath.hpp"
+#include "Movement/AutoWalk.hpp"
 #include "Movement/DamageBoost.hpp"
 #include "Movement/DebugFly.hpp"
 #include "Movement/FastStop.hpp"
@@ -75,6 +76,7 @@
 
 #include "Player/AntiVoid.hpp"
 #include "Player/AutoBoombox.hpp"
+#include "Player/AutoEat.hpp"
 #include "Player/AutoKick.hpp"
 #include "Player/AutoSpellBook.hpp"
 #include "Player/AutoTool.hpp"
@@ -91,9 +93,13 @@
 #include "Player/NoRotate.hpp"
 #include "Player/Nuker.hpp"
 #include "Player/OreMiner.hpp"
-#include "Player/Regen.hpp"
-#include "Player/RegenRecode.hpp"
+#include "Player/AutoMiner.hpp"
+//#include "Player/Regen.hpp"
+//#include "Player/RegenRecode.hpp"
 #include "Player/Scaffold.hpp"
+#include "Player/SwitchBallAim.hpp"
+#include "Player/Surround.hpp"
+#include "Player/ZipLine.hpp"
 #include "Player/Teams.hpp"
 #include "Player/Timer.hpp"
 #include "Player/FastEat.hpp"
@@ -113,7 +119,6 @@
 #include "Visual/Freelook.hpp"
 #include "Visual/FullBright.hpp"
 #include "Visual/Glint.hpp"
-#include "Visual/Goofy.hpp"
 #include "Visual/HudEditor.hpp"
 #include "Visual/Interface.hpp"
 #include "Visual/ItemESP.hpp"
@@ -129,6 +134,7 @@
 #include "Visual/NoHurtcam.hpp"
 #include "Visual/NoRender.hpp"
 #include "Visual/Notifications.hpp"
+#include "Visual/PlaceHighlights.hpp"
 #include "Visual/RobloxCamera.hpp"
 #include "Visual/SessionInfo.hpp"
 #include "Visual/TargetHUD.hpp"
@@ -150,6 +156,7 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<Reach>());
     mModules.emplace_back(std::make_shared<Criticals>());
     mModules.emplace_back(std::make_shared<InfiniteAura>());
+    mModules.emplace_back(std::make_shared<HitBoxes>());
 
 
     // Movement
@@ -175,17 +182,20 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<ReverseStep>());
     mModules.emplace_back(std::make_shared<Jetpack>());
     mModules.emplace_back(std::make_shared<DamageBoost>());
+    mModules.emplace_back(std::make_shared<AutoWalk>());
 
     // Player
     mModules.emplace_back(std::make_shared<AutoSpellBook>());
     mModules.emplace_back(std::make_shared<Timer>());
     mModules.emplace_back(std::make_shared<ChestStealer>());
     mModules.emplace_back(std::make_shared<InvManager>());
-    mModules.emplace_back(std::make_shared<Regen>());
-/*#ifdef __DEBUG__
-    mModules.emplace_back(std::make_shared<RegenRecode>());
-#endif*/
+    mModules.emplace_back(std::make_shared<AutoMiner>());
+ //   mModules.emplace_back(std::make_shared<Regen>());
+  //  mModules.emplace_back(std::make_shared<RegenRecode>());
     mModules.emplace_back(std::make_shared<Scaffold>());
+    mModules.emplace_back(std::make_shared<SwitchBallAim>());
+    mModules.emplace_back(std::make_shared<Surround>());
+    mModules.emplace_back(std::make_shared<ZipLine>());
     mModules.emplace_back(std::make_shared<Nuker>());
     mModules.emplace_back(std::make_shared<OreMiner>());
     mModules.emplace_back(std::make_shared<AutoBoombox>());
@@ -202,6 +212,7 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<ChestAura>());
     mModules.emplace_back(std::make_shared<NoRotate>());
     mModules.emplace_back(std::make_shared<FastEat>());
+    mModules.emplace_back(std::make_shared<AutoEat>());
 
     // Misc
     mModules.emplace_back(std::make_shared<ToggleSounds>());
@@ -225,7 +236,7 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<AutoAccept>());
     mModules.emplace_back(std::make_shared<PartySpammer>());
     mModules.emplace_back(std::make_shared<Spammer>());
-    mModules.emplace_back(std::make_shared<IRC>());
+ //   mModules.emplace_back(std::make_shared<IRC>());
     mModules.emplace_back(std::make_shared<SkinStealer>());
     mModules.emplace_back(std::make_shared<AutoLootbox>());
     mModules.emplace_back(std::make_shared<AutoDodge>());
@@ -244,6 +255,7 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<LevelInfo>());
     mModules.emplace_back(std::make_shared<Notifications>());
     mModules.emplace_back(std::make_shared<DestroyProgress>());
+    mModules.emplace_back(std::make_shared<PlaceHighlights>());
     mModules.emplace_back(std::make_shared<ESP>());
     mModules.emplace_back(std::make_shared<BlockESP>());
     mModules.emplace_back(std::make_shared<MotionBlur>());
@@ -270,8 +282,8 @@ void ModuleManager::init()
 
 
 #ifdef __PRIVATE_BUILD__
-    // mModules.emplace_back(std::make_shared<HiveFly>()); // Flareon V2 boombox fly
-    // mModules.emplace_back(std::make_shared<DebugFly>()); // Real Sigma fly for Flareon V1 and the latest one
+    mModules.emplace_back(std::make_shared<HiveFly>()); // Flareon V2 boombox fly
+    mModules.emplace_back(std::make_shared<DebugFly>()); // Real Sigma fly for Flareon V1 and the latest one
     mModules.emplace_back(std::make_shared<Desync>()); // needs troubleshooting
     mModules.emplace_back(std::make_shared<SkinBlinker>());
     mModules.emplace_back(std::make_shared<Anticheat>()); // Private for now cuz its not really good
@@ -286,24 +298,10 @@ void ModuleManager::init()
     mModules.emplace_back(std::make_shared<AutoKick>()); // LMAO
 
     //mModules.emplace_back(std::make_shared<ItemPhysics>());
-    mModules.emplace_back(std::make_shared<VoiceChat>());
     mModules.emplace_back(std::make_shared<BoneEsp>());
     mModules.emplace_back(std::make_shared<CustomChat>());
-    mModules.emplace_back(std::make_shared<Goofy>()); // Experimental Shit DO NOT TOUCH :PPP
 
 #endif
-
-    // Determine if we should add UpdateForm
-    std::string oldHash = OAuthUtils::getLastCommitHash();
-    std::string latestHash = SOLSTICE_BUILD_VERSION;
-    if (oldHash != latestHash && oldHash != "")
-    {
-        spdlog::info("Adding UpdateForm module, oldHash: {}, latestHash: {}", oldHash, latestHash);
-        mModules.emplace_back(std::make_shared<UpdateForm>());
-    } else
-    {
-        spdlog::info("Not adding UpdateForm module, oldHash: {}, latestHash: {}", oldHash, latestHash);
-    }
 
     for (auto& module : mModules)
     {
@@ -441,6 +439,9 @@ void ModuleManager::onClientTick()
             spdlog::error("Failed to enable/disable module {}: unknown", module->mName);
         }
     }
+
+    auto holder = nes::make_holder<ClientTickEvent>();
+    gFeatureManager->mDispatcher->trigger(holder);
 }
 
 nlohmann::json ModuleManager::serialize() const

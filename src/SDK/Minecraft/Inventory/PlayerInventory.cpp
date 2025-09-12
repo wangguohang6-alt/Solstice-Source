@@ -83,7 +83,7 @@ void Inventory::equipArmor(int slot)
 
     static ItemStack blankStack = ItemStack();
 
-    Item* item = *itemStack->mItem;
+    Item* item = itemStack->getItem();
     // Get the current item stack in the armor slot
     ItemStack* armorStack = player->getArmorContainer()->getItem(item->getArmorSlot());
 
@@ -137,5 +137,5 @@ void Inventory::releaseUsingItem(int slot)
 
 Inventory* PlayerInventory::getContainer()
 {
-    return hat::member_at<Inventory*>(this, OffsetProvider::PlayerInventory_mContainer);
+    return hat::member_at<Inventory*>(this, OffsetProvider::PlayerInventory_mContainer); //its 0xb8
 }

@@ -32,7 +32,7 @@ enum struct EventPriorities {
 #include <thread>
 #include <vector>
 #include <Windows.h>
-#include <glm/glm.hpp>
+
 #include "spdlog/logger.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <array>
@@ -57,5 +57,7 @@ enum struct EventPriorities {
 #include <nlohmann/json.hpp>
 #include <Utils/Utils.hpp>
 #include <imgui_freetype.h>
+
+// Luau
 
 #endif //PCH_HPP
