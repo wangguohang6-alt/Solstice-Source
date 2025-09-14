@@ -45,6 +45,16 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
     float deltaTime = ImGui::GetIO().DeltaTime;
     auto drawList = ImGui::GetBackgroundDrawList();
 
+    // Search box logic
+    static char searchText[128] = "";
+    ImGui::SetNextWindowPos(ImVec2(screen.x / 2 - 150, 100), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Search Modules", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::SetWindowFontScale(0.5f);
+    ImGui::PushItemWidth(300);
+    ImGui::InputTextWithHint("##Search", "Search modules...", searchText, IM_ARRAYSIZE(searchText));
+    ImGui::PopItemWidth();
+    ImGui::End();
+
     // If the reset position bool is true and lastReset was more than 100ms ago, reset the position
     if (resetPosition && NOW - lastReset > 100)
     {
@@ -132,7 +142,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
         ImGui::End();
         ImGui::PopFont();
 
-        if (ImGui::IsMouseClicked(0) && !ImRenderUtils::isMouseOver(ImVec4(screen.x / 2 - 200, screen.y / 2, screen.x / 2 + 200, screen.y / 2 + 400)))
+        if (ImGui::IsMouseClicked(0) && !ImGui::GetIO().WantCaptureMouse && !ImRenderUtils::isMouseOver(ImVec4(screen.x / 2 - 200, screen.y / 2, screen.x / 2 + 200, screen.y / 2 + 400)))
         {
             displayColorPicker = false;
         }
@@ -167,6 +177,28 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
 
             // Get all the modules and populate our vector
             const auto& modsInCategory = gFeatureManager->mModuleManager->getModulesInCategory(i);
+            
+            // Filter modules based on search text
+            std::vector<std::shared_ptr<Module>> filteredMods;
+            if (strlen(searchText) > 0)
+            {
+                std::string searchLower = searchText;
+                std::transform(searchLower.begin(), searchLower.end(), searchLower.begin(), ::tolower);
+
+                for (const auto& mod : modsInCategory)
+                {
+                    std::string modNameLower = mod->getName();
+                    std::transform(modNameLower.begin(), modNameLower.end(), modNameLower.begin(), ::tolower);
+                    if (modNameLower.find(searchLower) != std::string::npos)
+                    {
+                        filteredMods.push_back(mod);
+                    }
+                }
+            }
+            else
+            {
+                filteredMods = modsInCategory;
+            }
 
             // Calculate the catRect pos
             ImVec4 catRect = ImVec4(catPositions[i].x, catPositions[i].y,
@@ -179,7 +211,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
             /* Calculate the height of the catWindow including the settings */
             float settingsHeight = 0;
 
-            for (const auto& mod : modsInCategory)
+            for (const auto& mod : filteredMods)
             {
                 std::string modLower = mod->getName();
 
@@ -226,7 +258,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                 }
             }
 
-            float catWindowHeight = catHeight + modHeight * modsInCategory.size() + settingsHeight;
+            float catWindowHeight = catHeight + modHeight * filteredMods.size() + settingsHeight;
             ImVec4 catWindow = ImVec4(catPositions[i].x, catPositions[i].y,
                                                       catPositions[i].x + catWidth,
                                                       catPositions[i].y + moduleY + catWindowHeight)
@@ -274,14 +306,14 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
             drawList->PushClipRect(ImVec2(clipRect.x, clipRect.y), ImVec2(clipRect.z, clipRect.w), true);
 
             int modIndex = 0;
-            int modCount = modsInCategory.size();
+            int modCount = filteredMods.size();
             bool endMod = false;
             bool moduleToggled = false;
-            for (const auto& mod : modsInCategory)
+            for (const auto& mod : filteredMods)
             {
                 ImDrawFlags flags = ImDrawFlags_RoundCornersBottom;
                 float radius = 0.f;
-                if (modIndex == modsInCategory.size() - 1) {
+                if (modIndex == filteredMods.size() - 1) {
                     endMod = true;
                     radius = 15.f * (1.f - mod->cAnim);
                 }
@@ -374,7 +406,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                         std::string setName = lowercase ? StringUtils::toLower(setting->mName) : setting->mName;
                                         ImRenderUtils::fillRectangle(rect, ImColor(30, 30, 30), animation, radius, ImGui::GetBackgroundDrawList(), ImDrawFlags_RoundCornersBottom);
 
-                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended)
+                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended && !ImGui::GetIO().WantCaptureMouse)
                                         {
                                             tooltip = setting->mDescription;
                                             if (ImGui::IsMouseClicked(0) && !displayColorPicker && mod->showSettings)
@@ -503,7 +535,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                                         ImVec4(rect2.x, rect2.y, rect2.x + 1.5f, rect2.w),
                                                         rgb, animation);
 
-                                                if (ImRenderUtils::isMouseOver(rect2) && ImGui::IsMouseClicked(0) &&
+                                                if (ImRenderUtils::isMouseOver(rect2) && ImGui::IsMouseClicked(0) && !ImGui::GetIO().WantCaptureMouse &&
                                                     isEnabled && !displayColorPicker && mod->showSettings)
                                                 {
                                                     *iterator = j;
@@ -520,7 +552,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                     {
                                         ImRenderUtils::fillRectangle(rect, ImColor(30, 30, 30), animation, radius, ImGui::GetBackgroundDrawList(), ImDrawFlags_RoundCornersBottom);
 
-                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended)
+                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended && !ImGui::GetIO().WantCaptureMouse)
                                         {
                                             tooltip = setting->mDescription;
                                             if (ImGui::IsMouseClicked(0) && !displayColorPicker && mod->showSettings)
@@ -602,7 +634,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                     static float clickAnimation = 1.f;
 
                                     // If left click is down, lerp the alpha to 0.60f;
-                                    if (ImGui::IsMouseDown(0) && ImRenderUtils::isMouseOver(rect))
+                                    if (ImGui::IsMouseDown(0) && ImRenderUtils::isMouseOver(rect) && !ImGui::GetIO().WantCaptureMouse)
                                     {
                                         clickAnimation = MathUtils::animate(0.60f, clickAnimation, ImRenderUtils::getDeltaTime() * 10);
                                     }
@@ -622,7 +654,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                         setting->sliderEase = std::clamp(setting->sliderEase, 0.f, rect.getWidth());
 
 #pragma region Slider dragging
-                                       if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended)
+                                       if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended && !ImGui::GetIO().WantCaptureMouse)
                                         {
                                             tooltip = setting->mDescription;
                                             if (ImGui::IsMouseDown(0) || ImGui::IsMouseDown(2))
@@ -738,7 +770,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                                     {
                                         ImRenderUtils::fillRectangle(rect, ImColor(30, 30, 30), animation);
 
-                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended)
+                                        if (ImRenderUtils::isMouseOver(rect) && isEnabled && catPositions[i].isExtended && !ImGui::GetIO().WantCaptureMouse)
                                         {
                                             tooltip = setting->mDescription;
                                             if (ImGui::IsMouseClicked(0) && !displayColorPicker && mod->showSettings)
@@ -846,9 +878,9 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                         float renderx = screen.x / 2;
                         float rendery = (screen.y / 2) + 110;
 
-                        if (ImRenderUtils::isMouseOver(modRect) && catPositions[i].isExtended && isEnabled && catPositions[i].isExtended)
+                        if (ImRenderUtils::isMouseOver(modRect) && catPositions[i].isExtended && isEnabled && !ImGui::GetIO().WantCaptureMouse)
                         {
-                            if (ImRenderUtils::isMouseOver(catWindow) && catPositions[i].isExtended && catPositions[i].isExtended)
+                            if (ImRenderUtils::isMouseOver(catWindow) && catPositions[i].isExtended)
                             {
                                 tooltip = mod->mDescription;
                             }
@@ -932,7 +964,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
 
             std::string catName = lowercase ? StringUtils::toLower(categories[i]) : categories[i];
 
-            if (ImRenderUtils::isMouseOver(catRect) && ImGui::IsMouseClicked(1))
+            if (ImRenderUtils::isMouseOver(catRect) && ImGui::IsMouseClicked(1) && !ImGui::GetIO().WantCaptureMouse)
                 catPositions[i].isExtended = !catPositions[i].isExtended;
 
             catRect.w += 1.5f;
@@ -1007,7 +1039,7 @@ void ModernGui::render(float animation, float inScale, int& scrollDirection, cha
                     dragging = false;
                 }
             }
-            else if (ImRenderUtils::isMouseOver(catRect) && ImGui::IsMouseClicked(0) && isEnabled)
+            else if (ImRenderUtils::isMouseOver(catRect) && ImGui::IsMouseClicked(0) && isEnabled && !ImGui::GetIO().WantCaptureMouse)
             {
                 catPositions[i].isDragging = true;
                 dragOffset = ImVec2(ImRenderUtils::getMousePos().x - catRect.x,
